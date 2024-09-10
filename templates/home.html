@@ -1,0 +1,15 @@
+{% extends 'main.html' %}
+
+{%block content%}
+  <h1> Home template</h1>
+
+  <div>
+    <div>
+      {% for hive in hives %}
+          <h2>{{hive.buzz}}</h2>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock content%}
+
+

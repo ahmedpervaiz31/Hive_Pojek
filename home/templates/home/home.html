@@ -1,0 +1,18 @@
+{% block content %}
+  <h1> Home </h1>
+
+  <div>
+    <a href="{% url 'create-hive' %}">Create A New Hive</a>
+    <hr>
+    <div>
+      {% for hive in hives %}
+        <span> @{{hive.creator.username}}</span>
+        <h2>{{hive.id}} - <a href="{% url 'hive' hive.id %}">{{hive.buzz}}</a></h2>
+        <span>{{hive.topic}}</span>
+        <a href="{% url 'update-hive' hive.id %}">Edit</a>
+        <a href="{% url 'delete-hive' hive.id %}">Delete</a>
+        <hr>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock content %}

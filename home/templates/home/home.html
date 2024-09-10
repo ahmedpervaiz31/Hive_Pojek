@@ -1,18 +1,52 @@
-{% block content %}
-  <h1> Home </h1>
+{% extends 'main.html' %} 
 
-  <div>
-    <a href="{% url 'create-hive' %}">Create A New Hive</a>
-    <hr>
+{% block content %}
+<style>
+
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 3fr; 
+    gap: 20px;
+  }
+
+  .topics, .hives{
+    background-color: #f9f9f9; 
+    padding: 20px; 
+    border-radius: 8px; 
+  }
+  .list, .topics div {
+    padding: 8px;
+  }
+</style>
+
+<h1>Hive</h1>
+
+<div class="container">
+  <!-- show topics -->
+  <div class="topics">
+    <h2>Top Topics</h2>
     <div>
-      {% for hive in hives %}
-        <span> @{{hive.creator.username}}</span>
-        <h2>{{hive.id}} - <a href="{% url 'hive' hive.id %}">{{hive.buzz}}</a></h2>
-        <span>{{hive.topic}}</span>
-        <a href="{% url 'update-hive' hive.id %}">Edit</a>
-        <a href="{% url 'delete-hive' hive.id %}">Delete</a>
-        <hr>
-      {% endfor %}
+      <a href="{%url 'homepage'%}">Explore</a>
     </div>
+    {% for topic in topics %}
+      <div class="list">
+        <a href="{% url 'homepage' %}?q={{ topic.name }}">{{ topic.name }}</a>
+      </div>
+    {% endfor %}
   </div>
+
+  <!-- hives -->
+  <div class="hives">
+    <a href="{% url 'create-hive' %}">Create A New Hive</a>
+    <hr />
+    {% for hive in hives %}
+      <span> @{{ hive.creator.username }}</span>
+      <h2>{{ hive.id }} - <a href="{% url 'hive' hive.id %}">{{ hive.buzz }}</a></h2>
+      <span>{{ hive.topic }}</span>
+      <a href="{% url 'update-hive' hive.id %}">Edit</a>
+      <a href="{% url 'delete-hive' hive.id %}">Delete</a>
+      <hr />
+    {% endfor %}
+  </div>
+</div>
 {% endblock content %}

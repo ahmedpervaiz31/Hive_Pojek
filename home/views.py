@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Hive
+from .models import Hive, Topic
 from .forms import HiveForm
 
 '''
@@ -18,9 +18,13 @@ buzz = name
 
 # Create your views here.
 def home(request):
-  #get all hives
-  hives = Hive.objects.all()
-  return render(request, 'home/home.html', {'hives': hives})
+  #get all hives by search
+  q = request.GET.get('q') if request.GET.get('q') != None else ''
+  hives = Hive.objects.filter(topic__name__icontains = q)
+  
+  topics = Topic.objects.all()
+  
+  return render(request, 'home/home.html', {'hives': hives, 'topics': topics})
 
 def hive(request, pk):
   hive = Hive.objects.get(id=pk)
@@ -55,14 +59,6 @@ def updateHive(request, pk):
   return render(request, 'home/hiveForm.html', {'form': form})
 
 def deleteHive(request, pk):
-  # hive = Hive.objects.get(id=pk)
-  # form = HiveForm(instance=hive) #pre-fill with values
-  
-  # if request.method == 'POST':  #ensure the current editable hive is updated
-  #   form = HiveForm(request.POST, instance=hive)
-  #   if form.is_valid():
-  #     form.save()
-  #     return redirect('homepage')
   hive = Hive.objects.get(id=pk)
   if request.method == "POST":
     hive.delete()

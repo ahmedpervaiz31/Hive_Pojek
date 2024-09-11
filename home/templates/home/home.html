@@ -2,7 +2,6 @@
 
 {% block content %}
 <style>
-
   .container {
     display: grid;
     grid-template-columns: 1fr 3fr; 
@@ -37,6 +36,7 @@
 
   <!-- hives -->
   <div class="hives">
+    <h5>{{hive_count}} Hives found</h5>
     <a href="{% url 'create-hive' %}">Create A New Hive</a>
     <hr />
     {% for hive in hives %}

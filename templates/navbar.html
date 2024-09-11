@@ -1,1 +1,6 @@
 <a href="/">Home</a>
+
+<form method="GET" action="{% url 'homepage' %}">
+  <input type="text" name="q" placeholder="Explore Hives">
+  <button type="submit">Search</button> 
+</form>

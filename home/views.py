@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.db.models import Q
 from .models import Hive, Topic
 from .forms import HiveForm
 
@@ -13,18 +14,26 @@ buzz = name
 #   {'id': 3, 'buzz': 'Learn C++'},
 # ]
 
-
-
-
 # Create your views here.
 def home(request):
   #get all hives by search
   q = request.GET.get('q') if request.GET.get('q') != None else ''
-  hives = Hive.objects.filter(topic__name__icontains = q)
+  
+  ''' 
+  search based on topic, buzz, details
+  made for ease of users if they dont rmr exact topics etc.
+  '''
+  hives = Hive.objects.filter(  
+    Q(topic__name__icontains = q) |
+    Q(buzz__icontains = q) |
+    Q(details__icontains = q) 
+  )
   
   topics = Topic.objects.all()
+  hive_count = hives.count()
   
-  return render(request, 'home/home.html', {'hives': hives, 'topics': topics})
+  context = {'hives': hives, 'topics': topics, 'hive_count': hive_count}
+  return render(request, 'home/home.html', context)
 
 def hive(request, pk):
   hive = Hive.objects.get(id=pk)

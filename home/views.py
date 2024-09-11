@@ -15,14 +15,31 @@ buzz = name
 # ]
 
 # Create your views here.
-def home(request):
-  #get all hives by search
-  q = request.GET.get('q') if request.GET.get('q') != None else ''
+def loginView(request):
+  if request.method == 'POST':
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    
+    try:
+      user = user.objects.get(username=username)
+      
+    except:
+      pass
+      
+    
+  context={'username': username, 'password': password}
+  return render(request, 'home/logreg.html', context)
   
+
+
+def home(request):
   ''' 
   search based on topic, buzz, details
   made for ease of users if they dont rmr exact topics etc.
   '''
+  
+  q = request.GET.get('q') if request.GET.get('q') != None else ''
+
   hives = Hive.objects.filter(  
     Q(topic__name__icontains = q) |
     Q(buzz__icontains = q) |

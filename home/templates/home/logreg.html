@@ -1,6 +1,8 @@
 {% extends 'main.html' %}
 
 {% block content %}
+
+{% if page == 'login' %}
   <div>
     <form method="POST" action="">
       {% csrf_token %}
@@ -16,5 +18,20 @@
         <button type="submit">Login</button>
       </div>
     </form>
+    <p>New to Hive?</p>
+    <a href="{% url 'register' %}">Sign Up</a>
   </div>
+  
+{% else %}
+  <div>
+    <form method="POST" action="">
+      {% csrf_token %}
+      <div>
+        <button type="submit">Register</button>
+      </div>
+    </form>
+    <p>Already a member?</p>
+    <a href="{% url 'login' %}">Sign In</a>
+  </div>
+{% endif %}
 {% endblock %}

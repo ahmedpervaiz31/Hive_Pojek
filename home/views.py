@@ -84,24 +84,26 @@ def home(request):
   topics = Topic.objects.all()
   hive_count = hives.count()
   
+  
   context = {'hives': hives, 'topics': topics, 'hive_count': hive_count}
   return render(request, 'home/home.html', context)
 
 def hive(request, pk):
   hive = Hive.objects.get(id=pk)
   chats = hive.message_set.all().order_by('-created_at')  # get all related messages
-  
+  title = f"{hive.buzz} - Hive"
   if request.method == 'POST':  # add a new message
     chat = Message.objects.create(  
       user = request.user,
       hive = hive,
-      body = request.POST.get('body')
+      body = request.POST.get('body'),
     )
     return redirect('hive', pk = hive.id)
     
   context = {
     'hive': hive,
-    'chats': chats
+    'chats': chats,
+    'title': title
   }
   return render(request, 'home/hive.html', context)
 

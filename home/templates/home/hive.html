@@ -1,5 +1,28 @@
-{% extends 'main.html' %}  
+{% extends 'main.html' %} {% block content %}
+<div class="container">
+  <h1>{{hive.buzz}}</h1>
+  <h3>{{hive.details}}</h3>
 
-{% block content %}
-  <h1> {{hive.details}} </h1>
-{% endblock content %}
+  <div class="chat-w">
+    <h3>Conversation</h3>
+    <hr />
+
+    {% for chat in chats %}
+    <div>
+      <span>@{{chat.user}} - {{chat.created_at | timesince}} ago</span>
+      <p>{{chat.body}}</p>
+      <hr />
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if request.user.is_authenticated %}
+  <div class="chat-form">
+    <form action="" method="POST">
+      {% csrf_token %}
+      <input type="text" placeholder="Type a message..." name="body" />
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

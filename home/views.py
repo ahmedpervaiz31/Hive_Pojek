@@ -2,11 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Q
-from .models import Hive, Topic
+from .models import Hive, Topic, Message
 from .forms import HiveForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+
 
 '''
 hive = room
@@ -27,7 +29,7 @@ def loginView(request):
     return redirect('homepage')
    
   if request.method == 'POST':
-    username = request.POST.get('username')
+    username = request.POST.get('username').lower()
     password = request.POST.get('password')
     
     user = authenticate(request, username=username, password=password)
@@ -47,7 +49,21 @@ def logoutView(request):
   return redirect('homepage')
 
 def registerUser(request):
-  context={'page': 'register'}
+  form = UserCreationForm()
+  
+  if request.method == 'POST':
+    form = UserCreationForm(request.POST)
+    if form.is_valid():
+      user = form.save(commit=False) #access user first then save
+      user.username = user.username.lower()
+      user.save()
+      login(request, user)
+      
+      return redirect('homepage')
+    else:
+      messages.error(request, "Oops! We encountered an error during registration. Please try again later.")
+  
+  context={'page': 'register', 'form': form}
   return render(request, 'home/logreg.html', context )
   
 
@@ -73,8 +89,19 @@ def home(request):
 
 def hive(request, pk):
   hive = Hive.objects.get(id=pk)
+  chats = hive.message_set.all().order_by('-created_at')  # get all related messages
+  
+  if request.method == 'POST':  # add a new message
+    chat = Message.objects.create(  
+      user = request.user,
+      hive = hive,
+      body = request.POST.get('body')
+    )
+    return redirect('hive', pk = hive.id)
+    
   context = {
-    'hive': hive
+    'hive': hive,
+    'chats': chats
   }
   return render(request, 'home/hive.html', context)
 

@@ -86,18 +86,22 @@ def hive(request, pk):
   hive = Hive.objects.get(id=pk)
   chats = hive.message_set.all().order_by('-created_at')  # get all messages for that hive
   title = f"{hive.buzz} - Hive"
-  if request.method == 'POST':  # add a new message
+  members = hive.members.all()
+  if request.method == 'POST':  # add a new message, along with user
     chat = Message.objects.create(  
       user = request.user,
       hive = hive,
       body = request.POST.get('body'),
+      
     )
+    hive.members.add(request.user)
     return redirect('hive', pk = hive.id)
     
   context = {
     'hive': hive,
     'chats': chats,
-    'title': title
+    'title': title,
+    'members': members,
   }
   return render(request, 'home/hive.html', context)
 
@@ -141,3 +145,16 @@ def deleteHive(request, pk):
     return redirect('homepage')
   
   return render(request, 'home/delete.html', {'obj': hive})
+
+@login_required(login_url='login')
+def deleteMessage(request, pk):
+  message = Message.objects.get(id=pk)
+  
+  if request.user != message.user:
+    return HttpResponse("Nah fam i can't allow it")
+  
+  if request.method == "POST":
+    message.delete()
+    return redirect('homepage')
+  
+  return render(request, 'home/delete.html', {'obj': message})

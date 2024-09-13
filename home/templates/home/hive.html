@@ -4,16 +4,27 @@
 {% endblock %}
 {% block content %}
 
+<style>
+  .container{
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 15px;
+  }
+</style>
 <div class="container">
+  <div class="row">
   <h1>{{hive.buzz}}</h1>
   <h3>{{hive.details}}</h3>
 
-  <div class="chat-w">
+  <div class="chat-w ">
     <h3>Conversation</h3>
     <hr />
 
     {% for chat in chats %}
     <div>
+      {% if request.user == chat.user %}
+      <a href="{% url 'delete-message' chat.id %}">Delete</a>
+      {% endif %}
       <span>@{{chat.user}} - {{chat.created_at | timesince}} ago</span>
       <p>{{chat.body}}</p>
       <hr />
@@ -30,4 +41,14 @@
   </div>
   {% endif %}
 </div>
+  <div class="">
+    <h3>Members</h3>
+    {% for member in members %}
+    <div>
+      <p>@{{member.username}}</p>
+      <hr />
+    </div>
+    {% endfor %}
+  </div>
+</div>  
 {% endblock %}

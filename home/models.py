@@ -15,7 +15,7 @@ class Hive(models.Model):
   topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True)
   buzz = models.CharField(max_length=150)
   details = models.TextField(null=True, blank=True)
-  # members =
+  members = models.ManyToManyField(User, related_name='members', blank=True)
   updated = models.DateTimeField(auto_now=True) #auto timestamp
   created_at = models.DateTimeField(auto_now_add=True)
   

@@ -9,16 +9,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 
-
 '''
 hive = room
 buzz = name
 '''
-# hives = [
-#   {'id': 1, 'buzz': 'Learn Scraping'},
-#   {'id': 2, 'buzz': 'Learn Automata'},
-#   {'id': 3, 'buzz': 'Learn C++'},
-# ]
 
 # Create your views here.
 def loginView(request):
@@ -68,29 +62,29 @@ def registerUser(request):
   
 
 def home(request):
+  
   ''' 
   search based on topic, buzz, details
   made for ease of users if they dont rmr exact topics etc.
   '''
-  
   q = request.GET.get('q') if request.GET.get('q') != None else ''
 
-  hives = Hive.objects.filter(  
+  hives = Hive.objects.filter(
     Q(topic__name__icontains = q) |
     Q(buzz__icontains = q) |
-    Q(details__icontains = q) 
+    Q(details__icontains = q)
   )
-  
   topics = Topic.objects.all()
   hive_count = hives.count()
-  
   
   context = {'hives': hives, 'topics': topics, 'hive_count': hive_count}
   return render(request, 'home/home.html', context)
 
+# CRUD Operations
+
 def hive(request, pk):
   hive = Hive.objects.get(id=pk)
-  chats = hive.message_set.all().order_by('-created_at')  # get all related messages
+  chats = hive.message_set.all().order_by('-created_at')  # get all messages for that hive
   title = f"{hive.buzz} - Hive"
   if request.method == 'POST':  # add a new message
     chat = Message.objects.create(  
@@ -106,8 +100,6 @@ def hive(request, pk):
     'title': title
   }
   return render(request, 'home/hive.html', context)
-
-# CRUD Operations
 
 @login_required(login_url='login')
 def createHive(request):

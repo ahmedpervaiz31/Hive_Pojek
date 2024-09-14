@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+import urllib.parse
 
 '''
 hive = room
@@ -67,7 +68,9 @@ def home(request):
   search based on topic, buzz, details
   made for ease of users if they dont rmr exact topics etc.
   '''
-  q = request.GET.get('q') if request.GET.get('q') != None else ''
+  q = request.GET.get('q') if request.GET.get('q') else ''
+  
+  q = urllib.parse.unquote(q)
 
   hives = Hive.objects.filter(
     Q(topic__name__icontains = q) |
@@ -77,7 +80,10 @@ def home(request):
   topics = Topic.objects.all()
   hive_count = hives.count()
   
-  context = {'hives': hives, 'topics': topics, 'hive_count': hive_count}
+  #activities
+  chats = Message.objects.all()
+  
+  context = {'hives': hives, 'topics': topics, 'hive_count': hive_count, "q": q, "chats": chats}
   return render(request, 'home/home.html', context)
 
 # CRUD Operations

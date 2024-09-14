@@ -10,5 +10,5 @@ urlpatterns = [
   path('create-hive/', views.createHive, name='create-hive'),
   path('update-hive/<str:pk>', views.updateHive, name='update-hive'),
   path('delete-hive/<str:pk>', views.deleteHive, name='delete-hive'),
-  path('delete-message/<str:pk>', views.deleteMessage, name='delete-message'),
+  path('delete-message/<str:pk>', views.deleteMessage, name='delete-message'),  
 ]

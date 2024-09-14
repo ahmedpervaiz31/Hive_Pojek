@@ -4,13 +4,13 @@
 <style>
   .container {
     display: grid;
-    grid-template-columns: 1fr 3fr; 
+    grid-template-columns: 1fr 3fr 1fr; 
     gap: 20px;
   }
 
-  .topics, .hives{
+  .topics, .hives, .activities{
     background-color: #2d3346; 
-    padding: 10px; 
+    padding: 10px;
     border-radius: 8px; 
   }
   .list, .topics div {
@@ -18,8 +18,8 @@
   }
 </style>
 
-<h1 class="text-primary ">Hive</h1>
-
+<h1 class="text-primary">Hive</h1>
+<hr>
 <div class="container">
   <!-- show topics -->
   <div class="topics">
@@ -48,6 +48,20 @@
       <a href="{% url 'delete-hive' hive.id %}">Delete</a>
       {% endif %}
       <hr />
+    {% endfor %}
+  </div>
+  <div class="activities">
+    <h3>Recent Activity</h3>
+    <hr>
+    {% for chat in chats %}
+
+      <div class="p-2">
+        <span>@{{chat.user}} - {{chat.created_at|timesince}}</span>
+        <span class="px-2">replied to "{{chat.hive}}"</span>
+        <p class="p-2">{{chat.body}}</p>
+        <hr>
+      </div>
+
     {% endfor %}
   </div>
 </div>

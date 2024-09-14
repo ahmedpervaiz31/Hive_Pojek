@@ -6,3 +6,4 @@ class HiveForm(ModelForm):
   class Meta:
     model = Hive
     fields = '__all__'
+    exclude = ['creator', 'members']

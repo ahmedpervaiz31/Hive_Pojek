@@ -25,7 +25,7 @@
         {% if request.user == chat.user %}
         <a href="{% url 'delete-message' chat.id %}">Delete</a>
         {% endif %}
-        <span>@{{chat.user}} - {{chat.created_at | timesince}} ago</span>
+        <span><a href="{% url 'user-profile' chat.user.id%}">@{{chat.user}} </a>- {{chat.created_at | timesince}} ago</span>
         <p>{{chat.body}}</p>
         <hr />
       </div>

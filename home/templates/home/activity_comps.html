@@ -3,7 +3,7 @@
 {% for chat in chats %}
 
 <div class="p-2">
-  <span>@{{chat.user}} - {{chat.created_at|timesince}}</span>
+  <span><a href="{% url 'user-profile' chat.user.id %}">@{{chat.user}} </a>- {{chat.created_at|timesince}}</span>
   <span class="px-2">replied to "{{chat.hive}}"</span>
   <p class="p-2">{{chat.body}}</p>
   <hr />

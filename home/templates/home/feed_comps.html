@@ -1,10 +1,14 @@
 {% for hive in hives %}
-<span> @{{ hive.creator.username }}</span>
-<h2>{{ hive.id }} - <a href="{% url 'hive' hive.id %}">{{ hive.buzz }}</a></h2>
-<span>{{ hive.topic }}</span>
-{% if request.user == hive.creator %}
-<a href="{% url 'update-hive' hive.id %}">Edit</a>
-<a href="{% url 'delete-hive' hive.id %}">Delete</a>
-{% endif %}
-<hr />
+<div>
+  <a href=" {% url 'user-profile' hive.creator.id%}"> @{{ hive.creator.username }}</a>
+  <h2>
+    {{ hive.id }} - <a href="{% url 'hive' hive.id %}">{{ hive.buzz }}</a>
+  </h2>
+  <span>{{ hive.topic }}</span>
+  {% if request.user == hive.creator %}
+  <a href="{% url 'update-hive' hive.id %}">Edit</a>
+  <a href="{% url 'delete-hive' hive.id %}">Delete</a>
+  {% endif %}
+  <hr />
+</div>
 {% endfor %}

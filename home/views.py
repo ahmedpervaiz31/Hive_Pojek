@@ -122,7 +122,10 @@ def createHive(request):
   if request.method == 'POST':
     form = HiveForm(request.POST) # send all values to form
     if form.is_valid(): # check for valid vals
-      form.save()
+      
+      hive = form.save(commit=False)
+      hive.creator = request.user 
+      hive.save()
       return redirect('homepage')
   
   context = {"form": form}
@@ -184,3 +187,17 @@ def deleteMessage(request, pk):
 #         return redirect('homepage')
       
 #     return render(request, 'home/hiveForm.html', {'form': form})
+
+
+def userProfile(request, pk):
+  user = User.objects.get(id=pk)
+  hives = user.hive_set.all()
+  topics = Topic.objects.filter(hive__in=hives).distinct()
+  chats = user.message_set.all()
+  context = {
+    "user": user,
+    "hives": hives,
+    "topics": topics,
+    "chats": chats,
+  }
+  return render(request, 'home/profile.html', context)

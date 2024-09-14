@@ -71,17 +71,22 @@ def home(request):
   q = request.GET.get('q') if request.GET.get('q') else ''
   
   q = urllib.parse.unquote(q)
-
+  
   hives = Hive.objects.filter(
     Q(topic__name__icontains = q) |
     Q(buzz__icontains = q) |
     Q(details__icontains = q)
   )
+  
   topics = Topic.objects.all()
+  chats = Message.objects.filter(
+    Q(hive__topic__name__icontains = q)
+  )
+
   hive_count = hives.count()
   
   #activities
-  chats = Message.objects.all()
+
   
   context = {'hives': hives, 'topics': topics, 'hive_count': hive_count, "q": q, "chats": chats}
   return render(request, 'home/home.html', context)
@@ -164,3 +169,18 @@ def deleteMessage(request, pk):
     return redirect('homepage')
   
   return render(request, 'home/delete.html', {'obj': message})
+
+# def updateMessage(request, pk):
+#     message = Message.objects.get(id=pk)
+#     form = HiveForm(instance=hive) #pre-fill with values
+    
+#     if request.user != message.user:
+#       return HttpResponse("Nah fam i can't allow it")
+    
+#     if request.method == 'POST':  #ensure the current editable hive is updated
+#       form = HiveForm(request.POST, instance=hive)
+#       if form.is_valid():
+#         form.save()
+#         return redirect('homepage')
+      
+#     return render(request, 'home/hiveForm.html', {'form': form})

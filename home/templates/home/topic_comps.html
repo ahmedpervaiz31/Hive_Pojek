@@ -1,0 +1,9 @@
+<h2>Top Topics</h2>
+    <div>
+      <a href="{%url 'homepage'%}">Explore</a>
+    </div>
+    {% for topic in topics %}
+      <div class="list">
+        <a href="{% url 'homepage' %}?q={{ topic.name }}">{{ topic.name }}</a>
+      </div>
+    {% endfor %}

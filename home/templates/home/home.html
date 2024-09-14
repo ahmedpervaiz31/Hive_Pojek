@@ -23,15 +23,7 @@
 <div class="container">
   <!-- show topics -->
   <div class="topics">
-    <h2>Top Topics</h2>
-    <div>
-      <a href="{%url 'homepage'%}">Explore</a>
-    </div>
-    {% for topic in topics %}
-      <div class="list">
-        <a href="{% url 'homepage' %}?q={{ topic.name }}">{{ topic.name }}</a>
-      </div>
-    {% endfor %}
+    {% include 'home/topic_comps.html' %}
   </div>
 
   <!-- hives -->
@@ -39,30 +31,12 @@
     <h5>{{hive_count}} Hives found</h5>
     <a href="{% url 'create-hive' %}">Create A New Hive</a>
     <hr />
-    {% for hive in hives %}
-      <span> @{{ hive.creator.username }}</span>
-      <h2>{{ hive.id }} - <a href="{% url 'hive' hive.id %}">{{ hive.buzz }}</a></h2>
-      <span>{{ hive.topic }}</span>
-      {% if request.user == hive.creator %}
-      <a href="{% url 'update-hive' hive.id %}">Edit</a>
-      <a href="{% url 'delete-hive' hive.id %}">Delete</a>
-      {% endif %}
-      <hr />
-    {% endfor %}
+    <div>
+      {% include 'home/feed_comps.html'%}
+    </div>
   </div>
   <div class="activities">
-    <h3>Recent Activity</h3>
-    <hr>
-    {% for chat in chats %}
-
-      <div class="p-2">
-        <span>@{{chat.user}} - {{chat.created_at|timesince}}</span>
-        <span class="px-2">replied to "{{chat.hive}}"</span>
-        <p class="p-2">{{chat.body}}</p>
-        <hr>
-      </div>
-
-    {% endfor %}
+    {% include 'home/activity_comps.html' %}
   </div>
 </div>
 {% endblock content %}

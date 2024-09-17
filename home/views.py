@@ -8,12 +8,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from .forms import RegisterForm
 import urllib.parse
 
-'''
-hive = room
-buzz = name
-'''
+
 
 # Create your views here.
 def loginView(request):
@@ -44,10 +42,10 @@ def logoutView(request):
   return redirect('homepage')
 
 def registerUser(request):
-  form = UserCreationForm()
+  form = RegisterForm()
   
   if request.method == 'POST':
-    form = UserCreationForm(request.POST)
+    form = RegisterForm(request.POST)
     if form.is_valid():
       user = form.save(commit=False) #access user first then save
       user.username = user.username.lower()
@@ -59,7 +57,7 @@ def registerUser(request):
       messages.error(request, "Oops! We encountered an error during registration. Please try again later.")
   
   context={'page': 'register', 'form': form}
-  return render(request, 'home/logreg.html', context )
+  return render(request, 'home/register.html', context )
   
 
 def home(request):

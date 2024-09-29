@@ -49,4 +49,57 @@
     
   </div> {% endcomment %}
   
+<<<<<<< HEAD
+{% else %}
+
+ {% comment %} <div>
+  <form method="POST" action="">
+    {% csrf_token %}
+    <div class="container">
+      <div class="row justify-content-center">
+          <div class="col-lg-4 col-md-6">
+              <div class="card p-4 shadow-lg" style="background-color: #1d2034; border: none; border-radius: 10px;">
+                  <h1 class="text-center text-white mb-4">Sign Up</h1>
+                  <form method="post" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="text" name="username" class="form-control form-control-md custom-input" placeholder="Username" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="password" name="password" class="form-control form-control-md custom-input" placeholder="Password" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                      <input type="password" name="password" class="form-control form-control-md custom-input" placeholder="C" required>
+                  </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    </div>
+                    <button type="submit" class="login btn-md w-50 mx-auto mb-3">Log In</button>
+                    
+                    <div class="text-center mt-4">
+                        <span class="text-white-50">Already a Member? </span><a href="{% url 'login' %}" class="">Sign In</a>
+                    </div>
+                </form>
+              </div>
+          </div>
+      </div>
+  </div>  {% endcomment %}
+
+  <div>
+    <form method="POST" action="">
+      {% csrf_token %}
+      <div>
+        {{form.as_p}}
+        <button type="submit">Register</button>
+      </div>
+    </form>
+    <p>Already a member?</p>
+    <a href="{% url 'login' %}">Sign In</a>
+  </div> 
+{% endif %}
+=======
+>>>>>>> origin
 {% endblock %}

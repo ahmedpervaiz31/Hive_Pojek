@@ -1,0 +1,71 @@
+@startuml
+left to right direction
+
+actor Bee as U
+actor Queen as Q
+actor Admin as A
+
+rectangle HiveSystem {
+    usecase "Send Message" as UC0
+    usecase "Create Hive" as UC1
+    usecase "Manage Hive" as UC2
+    usecase "Search Hive and Topic" as UC3
+    usecase "Send Real-Time Notification" as UC4
+    usecase "Set Hive Status" as UC5
+    usecase "Set User Role" as UC6
+    usecase "Set Hive Moderation Rule" as UC7
+    usecase "Reply to Conversation" as UC8
+    usecase "Add Poll and Vote" as UC9
+    usecase "Pin Message and Make Announcement" as UC10
+    usecase "Set Custom Theme for Hive" as UC11
+    usecase "Encrypt Message" as UC12
+    usecase "Start Audio/Video Call" as UC13
+    usecase "Send Voice Message" as UC14
+    usecase "Manage Profile" as UC15
+    usecase "Share File" as UC16
+    usecase "Edit Photo" as UC17
+    usecase "Enable Vanish Mode" as UC18
+    usecase "Play Spotify Music" as UC19
+    usecase "Play JavaScript Game" as UC20
+}
+
+U --> UC0
+U --> UC1
+U --> UC3
+U --> UC4
+U --> UC8
+U --> UC10
+U --> UC13
+U --> UC14
+U --> UC15
+U --> UC16
+U --> UC19
+U --> UC20
+
+Q --> UC1
+Q --> UC2
+Q --> UC3
+Q --> UC4
+Q --> UC5
+Q --> UC6
+Q --> UC7
+Q --> UC8
+Q --> UC9
+Q --> UC10
+Q --> UC11
+Q --> UC13
+Q --> UC14
+Q --> UC15
+Q --> UC16
+Q --> UC17
+Q --> UC18
+Q --> UC19
+Q --> UC20
+
+A --> UC2
+A --> UC3
+A --> UC6
+A --> UC7
+A --> UC12
+
+@enduml

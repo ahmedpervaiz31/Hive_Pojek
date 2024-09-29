@@ -37,9 +37,9 @@ def loginView(request):
   return render(request, 'home/logreg.html', context)
   
 def logoutView(request):
-  
   logout(request)
   return redirect('homepage')
+
 
 def registerUser(request):
   form = RegisterForm()
@@ -82,11 +82,12 @@ def home(request):
   )
 
   hive_count = hives.count()
+  topic_count = topics.count()
   
   #activities
 
   
-  context = {'hives': hives, 'topics': topics, 'hive_count': hive_count, "q": q, "chats": chats}
+  context = {'hives': hives, 'topics': topics, 'topic_count': topic_count, 'hive_count': hive_count, "q": q, "chats": chats}
   return render(request, 'home/home.html', context)
 
 # CRUD Operations
@@ -113,27 +114,36 @@ def hive(request, pk):
     'members': members,
   }
   return render(request, 'home/hive.html', context)
-
 @login_required(login_url='login')
 def createHive(request):
-  form = HiveForm()
-  if request.method == 'POST':
-    form = HiveForm(request.POST) # send all values to form
-    if form.is_valid(): # check for valid vals
-      
-      hive = form.save(commit=False)
-      hive.creator = request.user 
-      hive.save()
-      return redirect('homepage')
-  
-  context = {"form": form}
-  return render(request, 'home/hiveForm.html', context)
+    topics = Topic.objects.all()
+    form = HiveForm()
+
+    if request.method == 'POST':
+        topic_name = request.POST.get('topic')
+        
+        # Get or create the topic from the input
+        topic, created = Topic.objects.get_or_create(name=topic_name)
+
+        # Create a new Hive object
+        Hive.objects.create(
+            creator=request.user,  # Set the creator to the current logged-in user
+            topic=topic,           # Use the topic object created or fetched above
+            buzz=request.POST.get('buzz'),
+            details=request.POST.get('deets')  # Changed 'deets' to match form field names
+        )
+        
+        return redirect('homepage')
+
+    context = {"form": form, "topics": topics}
+    return render(request, 'home/hiveForm.html', context)
+
 
 @login_required(login_url='login')
 def updateHive(request, pk):
   hive = Hive.objects.get(id=pk)
   form = HiveForm(instance=hive) #pre-fill with values
-  
+  topics = Topic.objects.all()
   if request.user != hive.creator:
     return HttpResponse("Nah fam i can't allow it")
   
@@ -143,7 +153,7 @@ def updateHive(request, pk):
       form.save()
       return redirect('homepage')
     
-  return render(request, 'home/hiveForm.html', {'form': form})
+  return render(request, 'home/hiveForm.html', {'form': form, 'topics': topics,})
 
 @login_required(login_url='login')
 def deleteHive(request, pk):

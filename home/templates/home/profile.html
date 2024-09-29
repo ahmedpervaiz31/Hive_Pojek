@@ -1,6 +1,65 @@
 {% extends 'main.html' %}
 
 {%block content%}
+
+  
+  <main class="profile-page layout layout--3">
+    <div class="container">
+      <!-- Topics Start -->
+      <div class="topics">  
+        {% include 'home/topic_comps.html' %}
+      </div>
+      <!-- Topics End -->
+
+      <!-- Room List Start -->
+      <div class="roomList">
+        <div class="profile">
+          <div class="profile__avatar">
+            <div class="avatar avatar--large active">
+              <img src="https://randomuser.me/api/portraits/men/11.jpg" />
+            </div>
+          </div>
+          <div class="profile__info">
+            <h3>{{user.username}}</h3>
+            <p>@{{user.username}}</p>
+            <a href="edit-user.html" class="btn btn--main btn--pill">Edit Profile</a>
+          </div>
+          <div class="profile__about">
+            <h3>About</h3>
+            <p>
+              This is {{user.username}}'s official Profile. Here you will find the hives that {{user.username}} is the queen of.
+            </p>
+          </div>
+        </div>
+
+        <div class="roomList__header">
+          <div>
+            <h2>Study Rooms Hosted by {{user.username}}</a>
+            </h2>
+          </div>
+        </div>
+        
+        {% include 'home/feed_comps.html' %}
+      </div>
+      <!-- Room List End -->
+
+      <!-- Activities Start -->
+      <div class="activities">
+        <div class="activities__header">
+          <h2>Recent Activities</h2>
+        </div>
+        {% include 'home/activity_comps.html' %}
+
+      </div>
+      <!-- Activities End -->
+    </div>
+  </main>
+
+  {% endblock content%}
+
+{% comment %} {% extends 'main.html' %}
+
+{%block content%}
 <style>
   .container {
     display: grid;
@@ -27,4 +86,4 @@
   </div>
 
 
-{% endblock content %}
+{% endblock content %} {% endcomment %}

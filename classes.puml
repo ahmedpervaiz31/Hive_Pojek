@@ -1,0 +1,36 @@
+@startuml
+
+class User {
+  +name: CharField
+  +email: EmailField
+  +bio: TextField
+  +avatar: ImageField
+}
+
+class Topic {
+  +name: CharField
+}
+
+class Hive {
+  +queen: ForeignKey(User)
+  +topic: ForeignKey(Buzz)
+  +buzz: CharField
+  +details: TextField
+  +members: ManyToManyField(User)
+  +updated: DateTimeField
+  +created: DateTimeField
+}
+
+class Message {
+  +user: ForeignKey(User)
+  +hive: ForeignKey(Hive)
+  +body: TextField
+  +updated: DateTimeField
+  +created: DateTimeField
+}
+
+Hive "n" -- "1" Topic : has
+User "1" -- "n" Message : sends
+Hive "1" -- "n" Message : contains
+User "n" -- "n" Hive : joins
+@enduml

@@ -12,4 +12,6 @@ urlpatterns = [
   path('delete-hive/<str:pk>', views.deleteHive, name='delete-hive'),
   path('delete-message/<str:pk>', views.deleteMessage, name='delete-message'),  
   path('user/<str:pk>', views.userProfile, name='user-profile'),  
+  path('update-user/', views.updateUser, name='edit-user'),  
+
 ]

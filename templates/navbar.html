@@ -19,14 +19,8 @@
     <nav class="header__menu">
      
 
-      <!-- Logged In -->
-      
-{% if request.user.is_authenticated%}
-{% comment %} <a href="{% url 'logout' %} " class="btn btn-primary">Logout</a>
-<h3>Welcome {{request.user}}</h3>
-
-{% else %}
-<a href="{% url 'login' %}" class="btn btn-primary">Login</a> {% endcomment %}
+    <!-- Logged In -->
+    {% if request.user.is_authenticated%}
 
       <div class="header__user">
         <a href="{% url 'user-profile' request.user.id %}">
@@ -51,7 +45,7 @@
 
       {% endif %}
       <div class="dropdown-menu">
-        <a href="settings.html" class="dropdown-link"
+        <a href="{% url 'edit-user' %}" class="dropdown-link"
           ><svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
             <title>tools</title>
             <path

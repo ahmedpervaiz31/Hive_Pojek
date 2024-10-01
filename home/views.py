@@ -3,12 +3,11 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Q
 from .models import Hive, Topic, Message
-from .forms import HiveForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
-from .forms import RegisterForm
+from .forms import UserForm, HiveForm
 import urllib.parse
 
 
@@ -34,7 +33,7 @@ def loginView(request):
       messages.error(request, "We could not find your username")
 
   context={'username': username, 'password': password, 'page': login}
-  return render(request, 'home/logreg.html', context)
+  return render(request, 'home/login.html', context)
   
 def logoutView(request):
   logout(request)
@@ -42,23 +41,20 @@ def logoutView(request):
 
 
 def registerUser(request):
-  form = RegisterForm()
-  
-  if request.method == 'POST':
-    form = RegisterForm(request.POST)
-    if form.is_valid():
-      user = form.save(commit=False) #access user first then save
-      user.username = user.username.lower()
-      user.save()
-      login(request, user)
-      
-      return redirect('homepage')
-    else:
-      messages.error(request, "Oops! We encountered an error during registration. Please try again later.")
-  
-  context={'page': 'register', 'form': form}
-  return render(request, 'home/register.html', context )
-  
+    form = UserCreationForm()
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.username = user.username.lower()
+            user.save()
+            login(request, user)  # Log the user in automatically after registration
+            return redirect('homepage')  # Redirect to the homepage
+        else:
+            messages.error(request, 'An error occurred during registration')
+
+    return render(request, 'home/register.html', {'form': form})
 
 def home(request):
   
@@ -83,9 +79,6 @@ def home(request):
 
   hive_count = hives.count()
   topic_count = topics.count()
-  
-  #activities
-
   
   context = {'hives': hives, 'topics': topics, 'topic_count': topic_count, 'hive_count': hive_count, "q": q, "chats": chats}
   return render(request, 'home/home.html', context)
@@ -209,3 +202,18 @@ def userProfile(request, pk):
     "chats": chats,
   }
   return render(request, 'home/profile.html', context)
+
+
+@login_required(login_url='login')
+def updateUser(request):
+  user = request.user
+  form = UserForm(instance=user)
+  
+  if request.method == 'POST':
+    form = UserForm(request.POST, instance=user)
+    if form.is_valid():
+      form.save()
+      return redirect('user-profile', pk=user.id)
+    
+  context = {"form": form}
+  return render(request, 'home/edit-user.html', context)

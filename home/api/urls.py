@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.getRoutes),
     path('hives/', views.getHives),
     path('hives/<str:pk>', views.getHive),
+    path('', views.getRoutes)
 ]

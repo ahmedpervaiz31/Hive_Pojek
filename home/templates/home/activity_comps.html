@@ -4,7 +4,7 @@
   <div class="activities__boxHeader roomListRoom__header">
     <a href="{% url 'user-profile' chat.user.id%}" class="roomListRoom__author">
       <div class="avatar avatar--small">
-        <img src="https://randomuser.me/api/portraits/women/11.jpg" />
+        <img src="{{chat.user.avatar.url}}" />
       </div>
       <p>
         @{{chat.user}}

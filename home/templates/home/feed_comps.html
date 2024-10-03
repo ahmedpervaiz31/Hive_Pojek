@@ -5,7 +5,7 @@
   <div class="roomListRoom__header">
     <a href="{%url 'user-profile' hive.creator.id %}" class="roomListRoom__author">
       <div class="avatar avatar--small">
-        <img src="https://randomuser.me/api/portraits/women/11.jpg" />
+        <img src="{{hive.creator.avatar.url}}" />
       </div>
       <span>{{hive.creator}}</span>
     </a>

@@ -85,7 +85,7 @@
                 <p>Queen</p>
                 <a href="{% url 'user-profile' hive.creator.id %}" class="room__author">
                   <div class="avatar avatar--small">
-                    <img src="https://randomuser.me/api/portraits/men/37.jpg" />
+                    <img src="{{hive.creator.avatar.url}}" />
                   </div>
                   <span>{{hive.creator}}</span>
                 </a>
@@ -103,7 +103,7 @@
                     <div class="thread__author">
                       <a href="{% url 'user-profile' user.id %}" class="thread__authorInfo">
                         <div class="avatar avatar--small">
-                          <img src="https://randomuser.me/api/portraits/men/37.jpg" />
+                          <img src="{{chat.user.avatar.url}}" />
                         </div>
                         <span>{{chat.user}}</span>
                       </a>
@@ -142,7 +142,7 @@
             {% for member in members %}
             <a href="profile.html" class="participant">
               <div class="avatar avatar--medium">
-                <img src="https://randomuser.me/api/portraits/men/37.jpg" />
+                <img src="{{member.avatar.url}}" />
               </div>
               
               <p>

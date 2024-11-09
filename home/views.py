@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Q
@@ -93,7 +93,8 @@ def home(request):
 
 # CRUD Operations
 def hive(request, pk):
-  hive = Hive.objects.get(id=pk)
+  hive = get_object_or_404(Hive, id=pk)
+
   chats = hive.message_set.all().order_by('-created_at')  # get all messages for that hive
   title = f"{hive.buzz} - Hive"
   members = hive.members.all()

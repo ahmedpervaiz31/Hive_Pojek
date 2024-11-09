@@ -4,7 +4,6 @@
 {% endblock %}
 {% block content %}
 
-   
     <main class="profile-page layout layout--2">
       <div class="container">
         <!-- Room Start -->
@@ -96,6 +95,30 @@
               <span class="room__topics">{{hive.topic}}</span>
             </div>
             <div class="room__conversation">
+              <div class="room__conversation">
+                <!-- Chat box for both existing and real-time messages -->
+                <div id="chat-box" class="threads scroll">
+                    {% for chat in chats %}
+                    <div class="thread">
+                        <div class="thread__top">
+                            <div class="thread__author">
+                                <a href="{% url 'user-profile' chat.user.id %}" class="thread__authorInfo">
+                                    <div class="avatar avatar--small">
+                                        <img src="{{ chat.user.avatar.url }}" />
+                                    </div>
+                                    <span>{{ chat.user }}</span>
+                                </a>
+                                <span class="thread__date">{{ chat.created_at|timesince }} ago</span>
+                            </div>
+                            <div class="thread__details">
+                                {{ chat.body }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
               <div class="threads scroll">
                 {% for chat in chats %}
                 <div class="thread">
@@ -127,9 +150,10 @@
             </div>
           </div>
           <div class="room__message">
-            <form action="" method="POST">
+            <form action="" method="POST" id="chat-message-form">
               {% csrf_token %}
-              <input type="text" placeholder="Type a message..." name="body" />
+              <input type="text" placeholder="Type a message..." name="body" id='message-input'/>
+              <button type='submit'> Send </button>
             </form>
           </div>
         </div>
@@ -169,38 +193,53 @@
 
       }
     </script> {% endcomment %}
-    {{ room_name|json_script:"room-name" }}
+    {% comment %} {{ room_name|json_script:"room-name" }} {% endcomment %}
     <script>
-        const hiveId = "{{ hive.id }}";  // Ensure `hive.id` is correctly passed from Django template
+      document.addEventListener("DOMContentLoaded", function () {
+        const hiveId = "{{ hive.id }}";
+        console.log("Hive ID:", hiveId);
+
         const chatSocket = new WebSocket(`ws://${window.location.host}/ws/hive/${hiveId}/`);
 
-        {% comment %} const roomName = JSON.parse(document.getElementById('room-name').textContent);
-
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + roomName
-            + '/'
-        ); {% endcomment %}
-
-        chatSocket.onopen = function() {
-          console.log("WebSocket connection established");
+        chatSocket.onopen = function () {
+            console.log("WebSocket connection established");
         };
-        
-        chatSocket.onmessage = function(e) {
+
+        chatSocket.onmessage = function (e) {
             const data = JSON.parse(e.data);
-            console.log("Message from server:", data.message);
-            // Display or process the message data
+            const message = data.message;
+
+            // Update the chat box dynamically
+            const chatBox = document.getElementById('chat-box');
+            const newMessage = document.createElement("p");
+            newMessage.textContent = message;
+            chatBox.appendChild(newMessage);
         };
-        
-        chatSocket.onclose = function() {
+
+        chatSocket.onclose = function (e) {
             console.log("WebSocket connection closed");
         };
 
+        // Get the form and set onsubmit, but only if it exists
+        const messageForm = document.getElementById("chat-message-form");
+        if (messageForm) {
+            messageForm.onsubmit = function (e) {
+                e.preventDefault();
+                const messageInput = document.getElementById("message-input");
+                const message = messageInput.value;
+
+                // Send the message over WebSocket
+                chatSocket.send(JSON.stringify({ "message": message }));
+                messageInput.value = ""; // Clear input field
+            };
+        } else {
+            console.error("Form with id 'chat-message-form' not found.");
+        }
+    });
+
         
 
-        document.querySelector('#chat-message-input').focus();
+        {% comment %} document.querySelector('#chat-message-input').focus();
         document.querySelector('#chat-message-input').onkeyup = function(e) {
             if (e.key === 'Enter') {  // enter, return
                 document.querySelector('#chat-message-submit').click();
@@ -214,7 +253,7 @@
                 'message': message
             }));
             messageInputDom.value = '';
-        };
+        }; {% endcomment %}
     </script>
 {% endblock %}
 

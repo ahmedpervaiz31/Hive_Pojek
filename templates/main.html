@@ -27,6 +27,18 @@
   
     {% endblock %}
     <script src="{% static 'js/script.js' %}"></script>
+    <script>
+      const hiveId = "{{ hive.id }}";  // Ensure hive.id is passed correctly from Django template
+      const ws = new WebSocket(`ws://${window.location.host}/ws/hive/${hiveId}/`);
+  
+      ws.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          const message = data.message;
+          document.getElementById('chat-box').innerHTML += `<p>${message}</p>`;
+      };
+  </script>
+  
+  
   </body>
 </html>
 

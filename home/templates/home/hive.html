@@ -157,7 +157,65 @@
         <!--  End -->
       </div>
     </main>
-    <script src="script.js"></script>
+    {% comment %} <script>
+      let url = `ws://${window.location.host}/ws/hive/${hive.id}/`;
+      const chatSocket = new WebSocket(url);
+
+
+      chatSocket.onmessage = function(e){
+        let data = JSON.parse(e)
+        console.log('Data:',data)
+      
+
+      }
+    </script> {% endcomment %}
+    {{ room_name|json_script:"room-name" }}
+    <script>
+        const hiveId = "{{ hive.id }}";  // Ensure `hive.id` is correctly passed from Django template
+        const chatSocket = new WebSocket(`ws://${window.location.host}/ws/hive/${hiveId}/`);
+
+        {% comment %} const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        ); {% endcomment %}
+
+        chatSocket.onopen = function() {
+          console.log("WebSocket connection established");
+        };
+        
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            console.log("Message from server:", data.message);
+            // Display or process the message data
+        };
+        
+        chatSocket.onclose = function() {
+            console.log("WebSocket connection closed");
+        };
+
+        
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.key === 'Enter') {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
 {% endblock %}
 
 {% comment %} {% extends 'main.html' %}

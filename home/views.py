@@ -9,7 +9,8 @@ from django.contrib.auth.decorators import login_required
 # from django.contrib.auth.forms import UserCreationForm
 from .forms import UserForm, HiveForm, myUserCreationForm
 import urllib.parse
-
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 
@@ -57,6 +58,12 @@ def registerUser(request):
 
     return render(request, 'home/register.html', {'form': form})
 
+def index(request):
+    return render(request, "home/hivechat.html")
+  
+def room(request, room):
+    return render(request, "home/hiveroom.html", {"room_name": room})
+
 def home(request):
   
   ''' 
@@ -85,7 +92,6 @@ def home(request):
   return render(request, 'home/home.html', context)
 
 # CRUD Operations
-
 def hive(request, pk):
   hive = Hive.objects.get(id=pk)
   chats = hive.message_set.all().order_by('-created_at')  # get all messages for that hive
@@ -108,6 +114,34 @@ def hive(request, pk):
     'members': members,
   }
   return render(request, 'home/hive.html', context)
+
+
+def send_message(request, hive_id):
+    hive = Hive.objects.get(id=hive_id)
+
+    if request.method == 'POST':
+        message_body = request.POST.get('message')
+
+        # Create a new message in the database
+        message = Message.objects.create(
+            body=message_body,
+            hive=hive,
+            user=request.user
+        )
+
+        # Broadcast the message to the WebSocket group (real-time notification)
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"hive_{hive_id}",
+            {
+                'type': 'hive_message',
+                'message': f'{request.user.username} sent a message: {message_body}'
+            }
+        )
+
+        return redirect('hive', hive_id=hive_id)
+      
+        
 @login_required(login_url='login')
 def createHive(request):
     topics = Topic.objects.all()

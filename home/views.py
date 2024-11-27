@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.db.models import Q
 from .models import Hive, Topic, Message, User
+import json
 # from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -11,6 +13,8 @@ from .forms import UserForm, HiveForm, myUserCreationForm
 import urllib.parse
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.views.decorators.csrf import csrf_exempt
+
 
 
 
@@ -58,11 +62,6 @@ def registerUser(request):
 
     return render(request, 'home/register.html', {'form': form})
 
-def index(request):
-    return render(request, "home/hivechat.html")
-  
-def room(request, room):
-    return render(request, "home/hiveroom.html", {"room_name": room})
 
 def home(request):
   
@@ -98,11 +97,30 @@ def hive(request, pk):
   chats = hive.message_set.all().order_by('-created_at')  # get all messages for that hive
   title = f"{hive.buzz} - Hive"
   members = hive.members.all()
+  
+  
   if request.method == 'POST':  # add a new message, along with user
-    chat = Message.objects.create(  
+    
+    body = request.POST.get('body')
+    file = request.FILES.get('file')
+
+    # Validate file type and size
+    if file:
+        valid_extensions = ['.jpg', '.png', '.pdf', '.docx']
+        if not any(file.name.endswith(ext) for ext in valid_extensions):
+            messages.error(request, 'Invalid file type')
+            return redirect('hive', pk=hive.id)
+
+        if file.size > 5 * 1024 * 1024:  # 5 MB limit
+            messages.error(request, 'File too large (max 5MB)')
+            return redirect('hive', pk=hive.id)
+          
+          
+    Message.objects.create(  
       user = request.user,
       hive = hive,
-      body = request.POST.get('body'),
+      body = body,
+      file=file,
       
     )
     hive.members.add(request.user)
@@ -129,6 +147,11 @@ def send_message(request, hive_id):
             hive=hive,
             user=request.user
         )
+        
+        # Automatically add user to hive
+        if request.user not in hive.members.all():
+            hive.members.add(request.user)
+
 
         # Broadcast the message to the WebSocket group (real-time notification)
         channel_layer = get_channel_layer()
@@ -253,3 +276,14 @@ def updateUser(request):
     
   context = {"form": form}
   return render(request, 'home/edit-user.html', context)
+
+@csrf_exempt
+def update_hive_theme(request, hive_id):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        theme = data.get("theme", "light")
+        hive = Hive.objects.get(id=hive_id)
+        hive.theme = theme
+        hive.save()
+        return JsonResponse({"success": True, "theme": theme})
+    return JsonResponse({"success": False}, status=400)

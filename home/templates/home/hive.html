@@ -1,314 +1,358 @@
 {% extends 'main.html' %}
-{% block title%}
-{{title}}
+{% block title %}
+{{ title }}
 {% endblock %}
 {% block content %}
 
-    <main class="profile-page layout layout--2">
-      <div class="container">
-        <!-- Room Start -->
-        <div class="room">
-          <div class="room__top">
-            <div class="room__topLeft">
-              <a href="{%url 'homepage' %}">
-                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-                  <title>arrow-left</title>
-                  <path
-                    d="M13.723 2.286l-13.723 13.714 13.719 13.714 1.616-1.611-10.96-10.96h27.625v-2.286h-27.625l10.965-10.965-1.616-1.607z"
-                  ></path>
-                </svg>
-              </a>
-              <h3>Hive</h3>
-            </div>
-
-            <div class="room__topRight">
-              <a href="{% url 'update-hive' hive.id%}">
-                <svg
-                  enable-background="new 0 0 24 24"
-                  height="32"
-                  viewBox="0 0 24 24"
-                  width="32"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <title>edit</title>
-                  <g>
-                    <path d="m23.5 22h-15c-.276 0-.5-.224-.5-.5s.224-.5.5-.5h15c.276 0 .5.224.5.5s-.224.5-.5.5z" />
-                  </g>
-                  <g>
-                    <g>
-                      <path
-                        d="m2.5 22c-.131 0-.259-.052-.354-.146-.123-.123-.173-.3-.133-.468l1.09-4.625c.021-.09.067-.173.133-.239l14.143-14.143c.565-.566 1.554-.566 2.121 0l2.121 2.121c.283.283.439.66.439 1.061s-.156.778-.439 1.061l-14.142 14.141c-.065.066-.148.112-.239.133l-4.625 1.09c-.038.01-.077.014-.115.014zm1.544-4.873-.872 3.7 3.7-.872 14.042-14.041c.095-.095.146-.22.146-.354 0-.133-.052-.259-.146-.354l-2.121-2.121c-.19-.189-.518-.189-.707 0zm3.081 3.283h.01z"
-                      />
-                    </g>
-                    <g>
-                      <path
-                        d="m17.889 10.146c-.128 0-.256-.049-.354-.146l-3.535-3.536c-.195-.195-.195-.512 0-.707s.512-.195.707 0l3.536 3.536c.195.195.195.512 0 .707-.098.098-.226.146-.354.146z"
-                      />
-                    </g>
-                  </g>
-                </svg>
-              </a>
-              <a href="{% url 'delete-hive' hive.id %}">
-                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-                  <title>remove</title>
-                  <path
-                    d="M27.314 6.019l-1.333-1.333-9.98 9.981-9.981-9.981-1.333 1.333 9.981 9.981-9.981 9.98 1.333 1.333 9.981-9.98 9.98 9.98 1.333-1.333-9.98-9.98 9.98-9.981z"
-                  ></path>
-                </svg>
-              </a>
-            </div>
-
-            <!-- <button class="action-button" data-id="120" data-delete-url="https://randomuser.me/api/3324923"
-            data-edit-url="profile.html">
+<main class="profile-page layout layout--2">
+  <div class="container">
+    <!-- Room Start -->
+    <div class="room">
+      <div class="room__top">
+        <div class="room__topLeft">
+          <a href="{% url 'homepage' %}">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-              <title>ellipsis-horizontal</title>
+              <title>arrow-left</title>
               <path
-                d="M16 7.843c-2.156 0-3.908-1.753-3.908-3.908s1.753-3.908 3.908-3.908c2.156 0 3.908 1.753 3.908 3.908s-1.753 3.908-3.908 3.908zM16 1.98c-1.077 0-1.954 0.877-1.954 1.954s0.877 1.954 1.954 1.954c1.077 0 1.954-0.877 1.954-1.954s-0.877-1.954-1.954-1.954z">
-              </path>
-              <path
-                d="M16 19.908c-2.156 0-3.908-1.753-3.908-3.908s1.753-3.908 3.908-3.908c2.156 0 3.908 1.753 3.908 3.908s-1.753 3.908-3.908 3.908zM16 14.046c-1.077 0-1.954 0.877-1.954 1.954s0.877 1.954 1.954 1.954c1.077 0 1.954-0.877 1.954-1.954s-0.877-1.954-1.954-1.954z">
-              </path>
-              <path
-                d="M16 31.974c-2.156 0-3.908-1.753-3.908-3.908s1.753-3.908 3.908-3.908c2.156 0 3.908 1.753 3.908 3.908s-1.753 3.908-3.908 3.908zM16 26.111c-1.077 0-1.954 0.877-1.954 1.954s0.877 1.954 1.954 1.954c1.077 0 1.954-0.877 1.954-1.954s-0.877-1.954-1.954-1.954z">
-              </path>
+                d="M13.723 2.286l-13.723 13.714 13.719 13.714 1.616-1.611-10.96-10.96h27.625v-2.286h-27.625l10.965-10.965-1.616-1.607z"
+              ></path>
             </svg>
-          </button> -->
-          </div>
-          <div class="room__box scroll">
-            <div class="room__header scroll">
-              <div class="room__info">
-                <h3>{{hive.buzz}}</h3>
-                <span>{{hive.created_at | timesince}}</span>
-              </div>
-              <div class="room__hosted">
-                <p>Queen</p>
-                <a href="{% url 'user-profile' hive.creator.id %}" class="room__author">
-                  <div class="avatar avatar--small">
-                    <img src="{{hive.creator.avatar.url}}" />
-                  </div>
-                  <span>{{hive.creator}}</span>
-                </a>
-              </div>
-              <div class="room__details">
-                {{hive.details}}
-              </div>
-              <span class="room__topics">{{hive.topic}}</span>
-            </div>
-            <div class="room__conversation">
-              <div class="room__conversation">
-                <!-- Chat box for both existing and real-time messages -->
-                <div id="chat-box" class="threads scroll">
-                    {% for chat in chats %}
-                    <div class="thread">
-                        <div class="thread__top">
-                            <div class="thread__author">
-                                <a href="{% url 'user-profile' chat.user.id %}" class="thread__authorInfo">
-                                    <div class="avatar avatar--small">
-                                        <img src="{{ chat.user.avatar.url }}" />
-                                    </div>
-                                    <span>{{ chat.user }}</span>
-                                </a>
-                                <span class="thread__date">{{ chat.created_at|timesince }} ago</span>
-                            </div>
-                            <div class="thread__details">
-                                {{ chat.body }}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-              <div class="threads scroll">
-                {% for chat in chats %}
-                <div class="thread">
-                  <div class="thread__top">
-                    <div class="thread__author">
-                      <a href="{% url 'user-profile' user.id %}" class="thread__authorInfo">
-                        <div class="avatar avatar--small">
-                          <img src="{{chat.user.avatar.url}}" />
-                        </div>
-                        <span>{{chat.user}}</span>
-                      </a>
-                      <span class="thread__date">{{chat.created_at | timesince }}</span>
-                    </div>
-                    <div class="thread__delete">
-                      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-                        <title>remove</title>
-                        <path
-                          d="M27.314 6.019l-1.333-1.333-9.98 9.981-9.981-9.981-1.333 1.333 9.981 9.981-9.981 9.98 1.333 1.333 9.981-9.98 9.98 9.98 1.333-1.333-9.98-9.98 9.98-9.981z"
-                        ></path>
-                      </svg>
-                    </div>
-                  </div>
-                  <div class="thread__details">
-                    {{chat.body}}
-                  </div>
-                </div>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-          <div class="room__message">
-            <form action="" method="POST" id="chat-message-form">
-              {% csrf_token %}
-              <input type="text" placeholder="Type a message..." name="body" id='message-input'/>
-              <button type='submit'> Send </button>
-            </form>
-          </div>
+          </a>
+          <h3>Hive</h3>
         </div>
-        <!-- Room End -->
 
-        <!--   Start -->
-        <div class="participants">
-          <h3 class="participants__top">Bees <span>({{hive.members.count}} Joined)</span></h3>
-          <div class="participants__list scroll">
-            {% for member in members %}
-            <a href="profile.html" class="participant">
-              <div class="avatar avatar--medium">
-                <img src="{{member.avatar.url}}" />
+        <div class="room__topRight">
+          <a href="{% url 'update-hive' hive.id %}">
+            <svg
+              enable-background="new 0 0 24 24"
+              height="32"
+              viewBox="0 0 24 24"
+              width="32"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <title>edit</title>
+              <g>
+                <path d="m23.5 22h-15c-.276 0-.5-.224-.5-.5s.224-.5.5-.5h15c.276 0 .5.224.5.5s-.224.5-.5.5z" />
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="m2.5 22c-.131 0-.259-.052-.354-.146-.123-.123-.173-.3-.133-.468l1.09-4.625c.021-.09.067-.173.133-.239l14.143-14.143c.565-.566 1.554-.566 2.121 0l2.121 2.121c.283.283.439.66.439 1.061s-.156.778-.439 1.061l-14.142 14.141c-.065.066-.148.112-.239.133l-4.625 1.09c-.038.01-.077.014-.115.014zm1.544-4.873-.872 3.7 3.7-.872 14.042-14.041c.095-.095.146-.22.146-.354 0-.133-.052-.259-.146-.354l-2.121-2.121c-.19-.189-.518-.189-.707 0zm3.081 3.283h.01z"
+                  />
+                </g>
+                <g>
+                  <path
+                    d="m17.889 10.146c-.128 0-.256-.049-.354-.146l-3.535-3.536c-.195-.195-.195-.512 0-.707s.512-.195.707 0l3.536 3.536c.195.195.195.512 0 .707-.098.098-.226.146-.354.146z"
+                  />
+                </g>
+              </g>
+            </svg>
+          </a>
+          <a href="{% url 'delete-hive' hive.id %}">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+              <title>remove</title>
+              <path
+                d="M27.314 6.019l-1.333-1.333-9.98 9.981-9.981-9.981-1.333 1.333 9.981 9.981-9.981 9.98 1.333 1.333 9.981-9.98 9.98 9.98 1.333-1.333-9.98-9.98 9.98-9.981z"
+              ></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="room__box scroll">
+        <div class="room__header scroll">
+          <div class="room__info">
+            <h3>{{ hive.buzz }}</h3>
+            <span>{{ hive.created_at | timesince }}</span>
+          </div>
+          <div class="room__hosted">
+            <p>Queen</p>
+            <a href="{% url 'user-profile' hive.creator.id %}" class="room__author">
+              <div class="avatar avatar--small">
+                <img src="{{ hive.creator.avatar.url }}" />
               </div>
-              
-              <p>
-                {{member.username}}
-                <span></span>
-              </p>
+              <span>{{ hive.creator }}</span>
             </a>
-            {% endfor %}
-            
           </div>
+          <div class="room__details">{{ hive.details }}</div>
+          <span class="room__topics">{{ hive.topic }}</span>
         </div>
-        <!--  End -->
+
+        <!-- Chat Conversation -->
+        <div id="chat-box" class="threads scroll" style="max-height:50%;">
+          {% for chat in chats %}
+          <div class="thread">
+            <div class="thread__top">
+              <div class="thread__author">
+                <a href="{% url 'user-profile' chat.user.id %}" class="thread__authorInfo">
+                  <div class="avatar avatar--small">
+                    <img src="{{ chat.user.avatar.url }}" />
+                  </div>
+                  <span>{{ chat.user }}</span>
+                </a>
+                <span class="thread__date">{{ chat.created_at | timesince }}</span>
+              </div>
+              <div class="thread__details">
+                {{ chat.body }}
+                {% if chat.file %}
+                <p>
+                  <a href="{{ chat.file.url }}" target="_blank">Download File</a>
+                </p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
       </div>
-    </main>
-    {% comment %} <script>
-      let url = `ws://${window.location.host}/ws/hive/${hive.id}/`;
-      const chatSocket = new WebSocket(url);
 
+      <div class="room__message">
+        <form action="" method="POST" enctype="multipart/form-data" id="chat-message-form" style="display:flex; gap: 10px;">
+          {% csrf_token %}
+          <input name="body" placeholder="Type a message..."/>
+          <input type="file" name="file" />
+          <button type="submit" style="border-radius: 5px; background-color:#696d97; color:#e0dddd; padding: 8px;">Send</button>
+        </form>
 
-      chatSocket.onmessage = function(e){
-        let data = JSON.parse(e)
-        console.log('Data:',data)
-      
+      </div>
+    </div>
 
-      }
-    </script> {% endcomment %}
-    {% comment %} {{ room_name|json_script:"room-name" }} {% endcomment %}
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const hiveId = "{{ hive.id }}";
-        console.log("Hive ID:", hiveId);
-
-        const chatSocket = new WebSocket(`ws://${window.location.host}/ws/hive/${hiveId}/`);
-
-        chatSocket.onopen = function () {
-            console.log("WebSocket connection established");
-        };
-
-        chatSocket.onmessage = function (e) {
-            const data = JSON.parse(e.data);
-            const message = data.message;
-
-            // Update the chat box dynamically
-            const chatBox = document.getElementById('chat-box');
-            const newMessage = document.createElement("p");
-            newMessage.textContent = message;
-            chatBox.appendChild(newMessage);
-        };
-
-        chatSocket.onclose = function (e) {
-            console.log("WebSocket connection closed");
-        };
-
-        // Get the form and set onsubmit, but only if it exists
-        const messageForm = document.getElementById("chat-message-form");
-        if (messageForm) {
-            messageForm.onsubmit = function (e) {
-                e.preventDefault();
-                const messageInput = document.getElementById("message-input");
-                const message = messageInput.value;
-
-                // Send the message over WebSocket
-                chatSocket.send(JSON.stringify({ "message": message }));
-                messageInput.value = ""; // Clear input field
-            };
-        } else {
-            console.error("Form with id 'chat-message-form' not found.");
-        }
-    });
-
+    <!-- Members Section -->
+    <div class="participants">
+      <h3 class="participants__top">Bees <span>({{ hive.members.count }} Joined)</span></h3>
+      <div class="participants__list scroll">
+        {% for member in members %}
+        <a href="{% url 'user-profile' member.id %}" class="participant">
+          <div class="avatar avatar--medium">
+            <img src="{{ member.avatar.url }}" />
+          </div>
+          <p>
+            {{ member.username }}
+          </p>
+        </a>
+        {% endfor %}
         
+<iframe
+  style="border-radius: 12px"
+  src="https://open.spotify.com/embed/playlist/6KZzgENvjZseWpSwneOce4?utm_source=generator"
+  width="100%"
+  height="300"
+  frameborder="0"
+  allowfullscreen=""
+  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+  loading="lazy"
+></iframe>
 
-        {% comment %} document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.key === 'Enter') {  // enter, return
-                document.querySelector('#chat-message-submit').click();
-            }
-        };
-
-        document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            messageInputDom.value = '';
-        }; {% endcomment %}
-    </script>
-{% endblock %}
-
-{% comment %} {% extends 'main.html' %}
-{% block title%}
-{{title}}
-{% endblock %}
-{% block content %}
-
-<style>
-  .container{
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    gap: 15px;
-  }
-</style>
-<div class="container">
-  <div class="row">
-    <h1>{{hive.buzz}}</h1>
-    <h3>{{hive.details}}</h3>
-
-    <div class="chat-w ">
-      <h3>Conversation</h3>
-      <hr />
-
-      {% for chat in chats %}
-      <div>
-        {% if request.user == chat.user %}
-        <a href="{% url 'delete-message' chat.id %}">Delete</a>
-        {% endif %}
-        <span><a href="{% url 'user-profile' chat.user.id%}">@{{chat.user}} </a>- {{chat.created_at | timesince}} ago</span>
-        <p>{{chat.body}}</p>
-        <hr />
+<div class="theme-toggle">
+  <label class="switch">
+      <input type="checkbox" id="theme-toggle" {% if hive.theme == 'dark' %} checked {% endif %}>
+      <span class="slider round"></span>
+  </label>
+  <span>Toggle Theme</span>
+</div>
       </div>
-      {% endfor %}
-    </div>
-
-    {% if request.user.is_authenticated %}
-    <div class="chat-form">
-      <form action="" method="POST">
-        {% csrf_token %}
-        <input type="text" placeholder="Type a message..." name="body" />
-      </form>
-    </div>
-    {% endif %}
-  </div>
-    <div class="">
-      <h3>Members</h3>
-      {% for member in members %}
-      <div>
-        <p>@{{member.username}}</p>
-        <hr />
-      </div>
-      {% endfor %}
+      
     </div>
     
-</div>  
-{% endblock %} {% endcomment %}
+  </div>
+</main>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const hiveId = "{{ hive.id }}";
+    const chatSocket = new WebSocket(`ws://${window.location.host}/ws/hive/${hiveId}/`);
+
+    chatSocket.onopen = function () {
+      console.log("WebSocket connection established");
+    };
+
+    chatSocket.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+      const chatBox = document.getElementById("chat-box");
+
+      if (data.message) {
+        const messageElement = document.createElement("p");
+        messageElement.textContent = `${data.username}: ${data.message}`;
+        chatBox.appendChild(messageElement);
+        toastr.success(`${data.username} sent a message!`)
+      }
+
+      if (data.file_url) {
+        const fileLink = document.createElement("a");
+        fileLink.href = data.file_url;
+        fileLink.textContent = "View File";
+        fileLink.target = "_blank";
+        chatBox.appendChild(fileLink);
+      }
+    };
+
+    chatSocket.onclose = function () {
+      console.log("WebSocket connection closed");
+    };
+
+    const messageForm = document.getElementById("chat-message-form");
+    messageForm.onsubmit = function (e) {
+      e.preventDefault();
+      const messageInput = messageForm.querySelector("input[name='body']");
+      const fileInput = messageForm.querySelector("input[name='file']").files[0];
+      const reader = new FileReader();
+
+      if (fileInput) {
+        reader.readAsDataURL(fileInput);
+        reader.onload = function () {
+          chatSocket.send(JSON.stringify({ file: reader.result }));
+        };
+      } else {
+        chatSocket.send(JSON.stringify({ message: messageInput.value }));
+      }
+
+      messageInput.value = "";
+      messageForm.querySelector("input[name='file']").value = "";
+    };
+  });
+</script> 
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const toggle = document.getElementById("theme-toggle");
+      const body = document.body;
+      const hiveId = "{{ hive.id }}";
+
+      // Set initial theme
+      const currentTheme = "{{ hive.theme }}";
+      if (currentTheme === "dark") {
+          body.classList.add("dark-mode");
+      }
+
+      // Toggle theme
+      toggle.addEventListener("change", async function () {
+          const isDarkMode = toggle.checked;
+          body.classList.toggle("dark-mode", isDarkMode);
+
+          // Update the backend
+          const theme = isDarkMode ? "dark" : "light";
+          await fetch(`/update-hive-theme/${hiveId}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: JSON.stringify({ theme: theme }),
+        });
+      });
+  });
+</script>
+
+
+{% comment %} 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const hiveId = "{{ hive.id }}";
+  const chatSocket = new WebSocket(`ws://${window.location.host}/ws/hive/${hiveId}/`);
+
+  chatSocket.onopen = function () {
+    console.log("WebSocket connection established");
+  };
+
+  chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    const chatBox = document.getElementById("chat-box");
+
+    if (data.message) {
+      const messageElement = document.createElement("p");
+      messageElement.textContent = `${data.username}: ${data.message}`;
+      chatBox.appendChild(messageElement);
+    }
+
+    if (data.file_url) {
+      const fileLink = document.createElement("a");
+      fileLink.href = data.file_url;
+      fileLink.textContent = "View File";
+      fileLink.target = "_blank";
+      chatBox.appendChild(fileLink);
+    }
+  };
+
+  chatSocket.onclose = function () {
+    console.log("WebSocket connection closed");
+  };
+
+  const messageForm = document.getElementById("chat-message-form");
+  messageForm.onsubmit = function (e) {
+    e.preventDefault();
+    const messageInput = messageForm.querySelector("textarea[name='body']");
+    const fileInput = messageForm.querySelector("input[name='file']").files[0];
+
+    const reader = new FileReader();
+    reader.onload = function () {
+      const fileData = reader.result;
+      chatSocket.send(JSON.stringify({ 
+        message: messageInput.value || null, 
+        file: fileData || null 
+      }));
+      messageInput.value = "";
+      messageForm.querySelector("input[name='file']").value = "";
+    };
+
+    if (fileInput) {
+      reader.readAsDataURL(fileInput);
+    } else {
+      chatSocket.send(JSON.stringify({ 
+        message: messageInput.value 
+      }));
+      messageInput.value = "";
+    }
+  };
+});
+</script> {% endcomment %}
+
+<style>
+
+  /* CSS */
+.theme-toggle {
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+}
+.switch input {
+    display: none;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+input:checked + .slider {
+    background-color: #2196f3;
+}
+input:checked + .slider:before {
+    transform: translateX(14px);
+}
+
+</style>
+
+{% endblock %}

@@ -27,6 +27,7 @@ class Hive(models.Model):
   members = models.ManyToManyField(User, related_name='members', blank=True)
   updated = models.DateTimeField(auto_now=True) #auto timestamp
   created_at = models.DateTimeField(auto_now_add=True)
+  theme = models.CharField(max_length=10, choices=[('light', 'Light'), ('dark', 'Dark')], default='dark')
   
   class Meta:
     ordering = ['-updated', '-created_at']
@@ -38,7 +39,8 @@ class Hive(models.Model):
 class Message(models.Model):
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   hive = models.ForeignKey(Hive, on_delete=models.CASCADE) #delete all msgs with the room
-  body = models.TextField()
+  body = models.TextField(blank=True, null=True)
+  file = models.FileField(upload_to='files/', blank=True, null=True)
   updated = models.DateTimeField(auto_now=True) #auto timestamp
   created_at = models.DateTimeField(auto_now_add=True)
   

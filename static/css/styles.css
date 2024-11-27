@@ -1,9 +1,6 @@
 /* styles.css */
 
 /* General Body Style */
-body {
-  background-color: #0f1320;  /* Dark background */
-}
 
 /* Custom Input Style */
 .custom-input {
@@ -36,4 +33,17 @@ body {
 
 .text-danger:hover {
   text-decoration: underline;  /* Underline on hover */
+}
+
+
+body {
+  background-color: #5a5959;
+  color: #a29e9e;
+  transition: background-color 0.3s, color 0.3s;
+ 
+}
+
+body.dark-mode {
+  background-color: #2b2a2a;
+  color: #ffffff;
 }

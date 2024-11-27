@@ -22,8 +22,12 @@ def getHives(request):
     return Response(serializer.data)
 
 
+
 @api_view(['GET'])
 def getHive(request, pk):
     hive = Hive.objects.get(id=pk)
     serializer = HiveSerializer(hive, many=False)
     return Response(serializer.data)
+
+
+

@@ -16,5 +16,12 @@ urlpatterns = [
   path('user/<str:pk>', views.userProfile, name='user-profile'),  
   path('update-user/', views.updateUser, name='edit-user'),
   path("update-hive-theme/<int:hive_id>/", views.update_hive_theme, name="update-hive-theme"),
+  
+  path('lobby/',views.lobby,name='lobby'),
+  path('hive_video/',views.videohive,name='hive-video'),
+  path('get_token/',views.getToken,),
+  path('create_member/',views.createMember),
+  path('get_member/',views.getMember),
+  path('delete_member/',views.deleteMember),
 
 ]

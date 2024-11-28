@@ -13,9 +13,20 @@ from .forms import UserForm, HiveForm, myUserCreationForm
 import urllib.parse
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.shortcuts import render
+from agora_token_builder import RtcTokenBuilder
+from django.http import JsonResponse
+import random,time
+import json
+from .models import HiveMember
 from django.views.decorators.csrf import csrf_exempt
 
+import os
+from home.utils import load_spam_words
 
+
+
+spam_words = load_spam_words()
 
 
 # Create your views here.
@@ -91,48 +102,97 @@ def home(request):
   return render(request, 'home/home.html', context)
 
 # CRUD Operations
-def hive(request, pk):
-  hive = get_object_or_404(Hive, id=pk)
+# def hive(request, pk):
+#   hive = get_object_or_404(Hive, id=pk)
 
-  chats = hive.message_set.all().order_by('-created_at')  # get all messages for that hive
-  title = f"{hive.buzz} - Hive"
-  members = hive.members.all()
+#   chats = hive.message_set.all().order_by('-created_at')  # get all messages for that hive
+#   title = f"{hive.buzz} - Hive"
+#   members = hive.members.all()
   
   
-  if request.method == 'POST':  # add a new message, along with user
+#   if request.method == 'POST':  # add a new message, along with user
     
-    body = request.POST.get('body')
-    file = request.FILES.get('file')
+#     body = request.POST.get('body')
+#     file = request.FILES.get('file')
 
-    # Validate file type and size
-    if file:
-        valid_extensions = ['.jpg', '.png', '.pdf', '.docx']
-        if not any(file.name.endswith(ext) for ext in valid_extensions):
-            messages.error(request, 'Invalid file type')
-            return redirect('hive', pk=hive.id)
+#     # Validate file type and size
+#     if file:
+#         valid_extensions = ['.jpg', '.png', '.pdf', '.docx']
+#         if not any(file.name.endswith(ext) for ext in valid_extensions):
+#             messages.error(request, 'Invalid file type')
+#             return redirect('hive', pk=hive.id)
 
-        if file.size > 5 * 1024 * 1024:  # 5 MB limit
-            messages.error(request, 'File too large (max 5MB)')
-            return redirect('hive', pk=hive.id)
+#         if file.size > 5 * 1024 * 1024:  # 5 MB limit
+#             messages.error(request, 'File too large (max 5MB)')
+#             return redirect('hive', pk=hive.id)
           
           
-    Message.objects.create(  
-      user = request.user,
-      hive = hive,
-      body = body,
-      file=file,
+#     Message.objects.create(  
+#       user = request.user,
+#       hive = hive,
+#       body = body,
+#       file=file,
       
-    )
-    hive.members.add(request.user)
-    return redirect('hive', pk = hive.id)
+#     )
+#     hive.members.add(request.user)
+#     return redirect('hive', pk = hive.id)
     
-  context = {
-    'hive': hive,
-    'chats': chats,
-    'title': title,
-    'members': members,
-  }
-  return render(request, 'home/hive.html', context)
+#   context = {
+#     'hive': hive,
+#     'chats': chats,
+#     'title': title,
+#     'members': members,
+#   }
+#   return render(request, 'home/hive.html', context)
+
+def hive(request, pk):
+    hive = get_object_or_404(Hive, id=pk)
+
+    # Get all messages for that hive
+    chats = hive.message_set.all().order_by('-created_at')
+    title = f"{hive.buzz} - Hive"
+    members = hive.members.all()
+    
+    # Load spam words
+    spam_words = load_spam_words()
+
+    if request.method == 'POST':  # Add a new message, along with the user
+        body = request.POST.get('body', '').lower()
+        file = request.FILES.get('file')
+
+        # Check for spam words in the body
+        if any(spam_word in body for spam_word in spam_words):
+            messages.error(request, 'Your message contains offensive words and cannot be sent.')
+            return redirect('hive', pk=hive.id)
+
+        # Validate file type and size
+        if file:
+            valid_extensions = ['.jpg', '.png', '.pdf', '.docx']
+            if not any(file.name.endswith(ext) for ext in valid_extensions):
+                messages.error(request, 'Invalid file type')
+                return redirect('hive', pk=hive.id)
+
+            if file.size > 5 * 1024 * 1024:  # 5 MB limit
+                messages.error(request, 'File too large (max 5MB)')
+                return redirect('hive', pk=hive.id)
+
+        # Create the message
+        Message.objects.create(
+            user=request.user,
+            hive=hive,
+            body=body,
+            file=file,
+        )
+        hive.members.add(request.user)  # Add the user to the hive's members
+        return redirect('hive', pk=hive.id)
+
+    context = {
+        'hive': hive,
+        'chats': chats,
+        'title': title,
+        'members': members,
+    }
+    return render(request, 'home/hive.html', context)
 
 
 def send_message(request, hive_id):
@@ -287,3 +347,65 @@ def update_hive_theme(request, hive_id):
         hive.save()
         return JsonResponse({"success": True, "theme": theme})
     return JsonResponse({"success": False}, status=400)
+  
+  
+  
+# audio/video calls
+@login_required(login_url='login')
+def lobby(request):
+    return render(request,'home/lobby.html')
+
+@login_required(login_url='login')
+def videohive(request):
+    return render(request,'home/hive_video.html')
+
+def getToken(request):
+    appId='593278c8e8b048f29c13c30c420f101f'
+    appCertificate='82321daa3ad94c3d853dd53acc330d1e'
+    channelName=request.GET.get('channel')
+    uid= random.randint(1,230)
+    expirationTimeInSeconds=3600*24
+    currentTimeStamp=time.time()
+    privilegeExpiredTs=currentTimeStamp + expirationTimeInSeconds
+    role=1
+
+    token = RtcTokenBuilder.buildTokenWithUid(appId, appCertificate, channelName, uid, role, privilegeExpiredTs)
+    return JsonResponse({'token':token,'uid':uid},safe=False)
+
+@csrf_exempt
+def createMember(request):
+    data=json.loads(request.body)
+    member,created= HiveMember.objects.get_or_create(
+        name=data['name'],
+        uid=data['UID'],
+        hive_name=data['hive_name']
+    )
+    return JsonResponse({'name':data['name']},safe=False)
+
+def getMember(request):
+    uid=request.GET.get('UID')
+    hive_name=request.GET.get('hive_name')
+
+    member=HiveMember.objects.get(
+        uid=uid,
+        hive_name=hive_name,
+    )
+    name=member.name
+    return JsonResponse({'name':member.name},safe=False)
+
+
+@csrf_exempt
+def deleteMember(request):
+    data = json.loads(request.body)
+
+    try:
+        member = HiveMember.objects.get(
+            name=data['name'],
+            uid=data['UID'],
+            hive_name=data['hive_name'],
+        )
+        member.delete()
+        return JsonResponse('Member Deleted!', safe=False)
+    except HiveMember.DoesNotExist:
+        return JsonResponse({'error': 'Member does not exist!'}, status=404, safe=False)
+      

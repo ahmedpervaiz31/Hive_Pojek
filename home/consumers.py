@@ -5,6 +5,8 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import Message, Hive  # Import Message and Hive models
 import base64
 from django.core.files.base import ContentFile
+from home.utils import load_spam_words
+
 
 class HiveChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -22,19 +24,70 @@ class HiveChatConsumer(WebsocketConsumer):
             self.channel_name,
         )
 
+    # def receive(self, text_data):
+    #     data = json.loads(text_data)
+    #     message_content = data.get("message", "")
+    #     file_data = data.get("file", None)
+    #     hive = Hive.objects.get(id=self.hive_id)
+    #     user = self.scope["user"]
+
+    #     file = None
+    #     if file_data:
+    #         # Handle Base64-encoded file
+    #         format, file_str = file_data.split(";base64,")
+    #         ext = format.split("/")[-1]
+    #         file = ContentFile(base64.b64decode(file_str), name=f"{user.username}_upload.{ext}")
+
+    #     # Save the message to the database
+    #     message = Message.objects.create(
+    #         user=user,
+    #         hive=hive,
+    #         body=message_content,
+    #         file=file,
+    #     )
+
+    #     async_to_sync(self.channel_layer.group_send)(
+    #         self.hive_group_name,
+    #         {
+    #             "type": "hive_message",
+    #             "message": message.body,
+    #             "username": user.username,
+    #             "file_url": message.file.url if message.file else None,
+    #         },
+    #     )
+
     def receive(self, text_data):
         data = json.loads(text_data)
-        message_content = data.get("message", "")
+        message_content = data.get("message", "").lower()
         file_data = data.get("file", None)
         hive = Hive.objects.get(id=self.hive_id)
         user = self.scope["user"]
 
+        # Load spam words
+        spam_words = load_spam_words()
+
+        # Check for offensive content
+        if any(spam_word in message_content for spam_word in spam_words):
+            # Send a warning back to the user
+            self.send(text_data=json.dumps({
+                "type": "warning",
+                "message": "Your message contains offensive words and cannot be sent."
+            }))
+            return  # Prevent further processing of the message
+
         file = None
         if file_data:
             # Handle Base64-encoded file
-            format, file_str = file_data.split(";base64,")
-            ext = format.split("/")[-1]
-            file = ContentFile(base64.b64decode(file_str), name=f"{user.username}_upload.{ext}")
+            try:
+                format, file_str = file_data.split(";base64,")
+                ext = format.split("/")[-1]
+                file = ContentFile(base64.b64decode(file_str), name=f"{user.username}_upload.{ext}")
+            except Exception as e:
+                self.send(text_data=json.dumps({
+                    "type": "error",
+                    "message": f"Failed to process the file: {str(e)}"
+                }))
+                return
 
         # Save the message to the database
         message = Message.objects.create(
@@ -44,6 +97,7 @@ class HiveChatConsumer(WebsocketConsumer):
             file=file,
         )
 
+        # Broadcast the message to the group
         async_to_sync(self.channel_layer.group_send)(
             self.hive_group_name,
             {
@@ -53,7 +107,8 @@ class HiveChatConsumer(WebsocketConsumer):
                 "file_url": message.file.url if message.file else None,
             },
         )
-
+        
+        
     def hive_message(self, event):
         self.send(text_data=json.dumps({
             "message": event["message"],

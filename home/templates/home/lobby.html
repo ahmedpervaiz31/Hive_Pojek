@@ -1,0 +1,74 @@
+{% extends 'main.html' %} {% load static %} {% block content %}
+<main>
+  <section id="form-container">
+    <img id="logo" src="{% static 'images/chat-icon.png' %}" />
+
+    <div id="welcome-message">
+      <h1>Welcome to Hive Calling</h1>
+      <p>Group Video Calling so that you can interact with other bees!</p>
+    </div>
+    <form id="form">
+      <div class="form-field">
+        <input
+          type="text"
+          name="username"
+          placeholder="Enter your name....."
+          style="text-transform: uppercase"
+        />
+      </div>
+
+      <div class="form-field">
+        <input
+          type="text"
+          name="hive"
+          placeholder="Enter Hive name...."
+          style="text-transform: uppercase"
+        />
+      </div>
+
+      <div class="form-field">
+        <input type="submit" value="Join stream" />
+      </div>
+    </form>
+  </section>
+</main>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+<script type="text/javascript">
+  let form = document.getElementById("form");
+  let handleSubmit = async (e) => {
+    e.preventDefault();
+
+    let hiveName = e.target.hive.value.toUpperCase(); // Get hive name
+    let userName = e.target.username.value;
+    let response = await fetch(`/get_token/?channel=${hiveName}`);
+    let data = await response.json();
+
+    let UID = data.uid;
+    let token = data.token;
+
+    sessionStorage.setItem("UID", UID);
+    sessionStorage.setItem("token", token);
+    sessionStorage.setItem("hive", hiveName);
+    sessionStorage.setItem("name", userName);
+
+    // After storing the session data, create WebSocket connection
+    const socket = new WebSocket(`ws://127.0.0.1:8000/ws/hive/${hiveName}/`);
+
+    // Handle WebSocket events
+    socket.onopen = function () {
+      console.log("WebSocket connection established");
+    };
+
+    socket.onerror = function (error) {
+      console.log("WebSocket error: ", error);
+    };
+
+    socket.onclose = function () {
+      console.log("WebSocket connection closed");
+    };
+
+    window.open("/hive_video/", "_self");
+  };
+  form.addEventListener("submit", handleSubmit);
+</script>
+{% endblock content %}

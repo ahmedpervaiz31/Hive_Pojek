@@ -1,1 +1,0 @@
-{% include 'home/topic_comps.html'%}

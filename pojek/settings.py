@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -143,6 +143,12 @@ STATICFILES_DIRS = [BASE_DIR / "static"]  # new
 
 MEDIA_URL = '/images/'
 MEDIA_ROOT = BASE_DIR / 'static/images'
+
+def load_spam_words():
+    with open(os.path.join(BASE_DIR, 'spam_words.txt'), 'r') as file:
+        return [word.strip().lower() for word in file.read().split(',')]
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

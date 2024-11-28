@@ -53,3 +53,12 @@ class Message(models.Model):
   
   
   
+class HiveMember(models.Model):
+  name=models.CharField(max_length=255)
+  uid=models.CharField(max_length=200)
+  hive_name=models.CharField(max_length=200)
+
+  def __str__(self):
+      return self.name
+  
+  

@@ -280,19 +280,46 @@ def deleteHive(request, pk):
   
   return render(request, 'home/delete.html', {'obj': hive})
 
-@login_required(login_url='login')
-def deleteMessage(request, pk):
-  message = Message.objects.get(id=pk)
+# @login_required(login_url='login')
+# def deleteMessage(request, pk):
+#   message = Message.objects.get(id=pk)
   
-  if request.user != message.user:
-    return HttpResponse("Nah fam i can't allow it")
+#   if request.user != message.user:
+#     return HttpResponse("Nah fam i can't allow it")
   
-  if request.method == "POST":
-    message.delete()
-    return redirect('homepage')
+#   if request.method == "POST":
+#     message.delete()
+#     return redirect('homepage')
   
-  return render(request, 'home/delete.html', {'obj': message})
+#   return render(request, 'home/delete.html', {'obj': message})
 
+
+def delete_message(request, message_id):
+    message = get_object_or_404(Message, id=message_id)
+    hive = message.hive
+
+    if request.user == hive.creator:  # Ensure only the Queen can delete messages
+        message.delete()
+        messages.success(request, "Message deleted successfully.")
+    else:
+        messages.error(request, "You do not have permission to delete this message.")
+
+    return redirect('hive', pk=hive.id)
+
+
+def kick_user(request, hive_id, user_id):
+    hive = get_object_or_404(Hive, id=hive_id)
+    user_to_kick = get_object_or_404(User, id=user_id)
+
+    if request.user == hive.creator:  # Only the Queen can kick users
+        hive.members.remove(user_to_kick)
+        messages.success(request, f"{user_to_kick.username} has been removed from the Hive.")
+    else:
+        messages.error(request, "You do not have permission to kick users.")
+
+    return redirect('hive', pk=hive.id)
+  
+  
 # def updateMessage(request, pk):
 #     message = Message.objects.get(id=pk)
 #     form = HiveForm(instance=hive) #pre-fill with values

@@ -66,6 +66,7 @@ class HiveChatConsumer(WebsocketConsumer):
         # Load spam words
         spam_words = load_spam_words()
 
+        
         # Check for offensive content
         if any(spam_word in message_content for spam_word in spam_words):
             # Send a warning back to the user
@@ -74,6 +75,13 @@ class HiveChatConsumer(WebsocketConsumer):
                 "message": "Your message contains offensive words and cannot be sent."
             }))
             return  # Prevent further processing of the message
+        
+        action = data.get("action", "")
+
+        if action == "kick":
+            kicked_user_id = data.get("user_id")
+            if self.scope["user"].id == kicked_user_id:
+                self.close()
 
         file = None
         if file_data:

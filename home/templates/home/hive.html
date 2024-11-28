@@ -99,6 +99,12 @@
                   <a href="{{ chat.file.url }}" target="_blank">Download File</a>
                 </p>
                 {% endif %}
+                {% if request.user == hive.creator %}
+                    <form action="{% url 'delete-message' chat.id %}" method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background:none; border:none; color:red; cursor:pointer;">Delete</button>
+                    </form>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -120,14 +126,17 @@
     <!-- Members Section -->
     <div class="participants">
       <h3 class="participants__top">Bees <span>({{ hive.members.count }} Joined)</span></h3>
-      <div class="participants__list scroll">
+      <div class="participants__list scroll" >
         {% for member in members %}
-        <a href="{% url 'user-profile' member.id %}" class="participant">
+        <a href="{% url 'user-profile' member.id %}" class="participant" >
           <div class="avatar avatar--medium">
             <img src="{{ member.avatar.url }}" />
           </div>
           <p>
             {{ member.username }}
+            {% if request.user == hive.creator and member != hive.creator %}
+              <a href="{% url 'kick-user' hive.id member.id %}" style="color:red; text-decoration:none;">Kick</a>
+            {% endif %}   
           </p>
         </a>
         {% endfor %}

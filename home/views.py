@@ -147,9 +147,10 @@ def home(request):
 
 def hive(request, pk):
     hive = get_object_or_404(Hive, id=pk)
+    pinned_messages = hive.message_set.filter(is_pinned=True).order_by('-created_at')
 
     # Get all messages for that hive
-    chats = hive.message_set.all().order_by('-created_at')
+    chats = hive.message_set.filter(is_pinned=False).order_by('-created_at')  # Exclude pinned messages from regular list
     title = f"{hive.buzz} - Hive"
     members = hive.members.all()
     
@@ -189,6 +190,7 @@ def hive(request, pk):
     context = {
         'hive': hive,
         'chats': chats,
+        'pinned_messages': pinned_messages,
         'title': title,
         'members': members,
     }
@@ -318,6 +320,23 @@ def kick_user(request, hive_id, user_id):
         messages.error(request, "You do not have permission to kick users.")
 
     return redirect('hive', pk=hive.id)
+
+
+@login_required(login_url='login')
+def pin_message(request, hive_id, message_id):
+    hive = get_object_or_404(Hive, id=hive_id)
+
+    # Ensure the current user is the admin
+    if request.user != hive.creator:
+        return JsonResponse({'error': 'Only the Hive admin can pin messages.'}, status=403)
+
+    message = get_object_or_404(Message, id=message_id, hive=hive)
+
+    # Toggle the pin status
+    message.is_pinned = not message.is_pinned
+    message.save()
+
+    return JsonResponse({'success': True, 'is_pinned': message.is_pinned, 'message_id': message.id})
   
   
 # def updateMessage(request, pk):

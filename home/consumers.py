@@ -61,6 +61,8 @@ class HiveChatConsumer(WebsocketConsumer):
         message_content = data.get("message", "").lower()
         file_data = data.get("file", None)
         hive = Hive.objects.get(id=self.hive_id)
+        message_id = data.get("message_id")
+
         user = self.scope["user"]
 
         # Load spam words
@@ -83,6 +85,24 @@ class HiveChatConsumer(WebsocketConsumer):
             if self.scope["user"].id == kicked_user_id:
                 self.close()
 
+        if action == "pin":
+            try:
+                message = Message.objects.get(id=message_id, hive_id=self.hive_id)
+                message.is_pinned = not message.is_pinned
+                message.save()
+
+                async_to_sync(self.channel_layer.group_send)(
+                    self.hive_group_name,
+                    {
+                        "type": "hive_message",
+                        "action": "pin",
+                        "message_id": message.id,
+                        "is_pinned": message.is_pinned,
+                        "body": message.body,  # Include the body in the WebSocket payload
+                    },
+                )
+            except Message.DoesNotExist:
+                pass
         file = None
         if file_data:
             # Handle Base64-encoded file

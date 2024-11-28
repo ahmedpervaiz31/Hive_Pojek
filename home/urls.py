@@ -13,6 +13,8 @@ urlpatterns = [
   path('update-hive/<str:pk>', views.updateHive, name='update-hive'),
   path('delete-hive/<str:pk>', views.deleteHive, name='delete-hive'),
   #path('delete-message/<str:pk>', views.deleteMessage, name='delete-message'),  
+  path('hive/<int:hive_id>/pin-message/<int:message_id>/', views.pin_message, name='pin-message'),
+
   path('delete-message/<int:message_id>/', views.delete_message, name='delete-message'),
   path('kick-user/<int:hive_id>/<int:user_id>/', views.kick_user, name='kick-user'),
   path('user/<str:pk>', views.userProfile, name='user-profile'),  

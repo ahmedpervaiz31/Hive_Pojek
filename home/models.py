@@ -43,6 +43,8 @@ class Message(models.Model):
   file = models.FileField(upload_to='files/', blank=True, null=True)
   updated = models.DateTimeField(auto_now=True) #auto timestamp
   created_at = models.DateTimeField(auto_now_add=True)
+  is_pinned = models.BooleanField(default=False)
+
   
   class Meta:
     ordering = ['-updated', '-created_at']

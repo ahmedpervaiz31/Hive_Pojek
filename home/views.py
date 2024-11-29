@@ -398,26 +398,40 @@ def update_hive_theme(request, hive_id):
   
 # audio/video calls
 @login_required(login_url='login')
-def lobby(request):
-    return render(request,'home/lobby.html')
+def lobby(request, hive_id):
+    hive = get_object_or_404(Hive, id=hive_id)
+    return render(request, 'home/lobby.html', {'hive': hive})
+    #return render(request,'home/lobby.html')
 
 @login_required(login_url='login')
-def videohive(request):
-    return render(request,'home/hive_video.html')
+def videohive(request, hive_id):
+    #hive = get_object_or_404(Hive, name=hive_name)
+    hive = get_object_or_404(Hive, id=hive_id)
+    username = request.GET.get('username', request.user.username)  # Default to logged-in user
+    hive_name = request.GET.get('hive', hive.buzz)  # Default to hive name from database
+
+    # Ensure session data is set for Agora
+    request.session['hive'] = hive_name
+    request.session['username'] = username
+
+    return render(request, 'home/hive_video.html', {'hive': hive, 'username': username})
+    #return render(request,'home/hive_video.html')
 
 def getToken(request):
-    appId='593278c8e8b048f29c13c30c420f101f'
-    appCertificate='82321daa3ad94c3d853dd53acc330d1e'
-    channelName=request.GET.get('channel')
-    uid= random.randint(1,230)
-    expirationTimeInSeconds=3600*24
-    currentTimeStamp=time.time()
-    privilegeExpiredTs=currentTimeStamp + expirationTimeInSeconds
-    role=1
+    appId = 'YOUR_APP_ID'
+    appCertificate = 'YOUR_APP_CERTIFICATE'
+    channelName = request.GET.get('channel')
+    uid = random.randint(1, 230)
+    expirationTimeInSeconds = 3600 * 24  # 24 hours
+    currentTimeStamp = int(time.time())
+    privilegeExpiredTs = currentTimeStamp + expirationTimeInSeconds
+    role = 1  # Agora's role for publisher
+
+    if not channelName:
+        return JsonResponse({'error': 'Channel name is required.'}, status=400)
 
     token = RtcTokenBuilder.buildTokenWithUid(appId, appCertificate, channelName, uid, role, privilegeExpiredTs)
-    return JsonResponse({'token':token,'uid':uid},safe=False)
-
+    return JsonResponse({'token': token, 'uid': uid}, safe=False)
 @csrf_exempt
 def createMember(request):
     data=json.loads(request.body)

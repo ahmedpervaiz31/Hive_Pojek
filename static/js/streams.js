@@ -4,6 +4,11 @@ const TOKEN = sessionStorage.getItem('token');
 let UID = Number(sessionStorage.getItem('UID'));
 const NAME = sessionStorage.getItem('name');
 
+
+// Ensure session storage is set before running the script
+sessionStorage.setItem('hive', new URLSearchParams(window.location.search).get('hive'));
+sessionStorage.setItem('name', new URLSearchParams(window.location.search).get('username'));
+
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 let localTracks = []; // 0 has Audio, 1 has video
 let remoteUsers = {};
@@ -33,39 +38,87 @@ socket.onmessage = function (event) {
 
 // Handle joining stream and displaying local stream
 let joinAndDisplayLocalStream = async () => {
-    document.getElementById('room-name').innerText = CHANNEL;
+    console.log("Attempting to join channel:", { APP_ID, CHANNEL, TOKEN, UID });
+
+    if (!CHANNEL || !TOKEN || !UID) {
+        alert("Channel, Token, or UID is missing.");
+        return;
+    }
 
     client.on('user-published', handleUserJoined);
     client.on('user-left', handleUserLeft);
 
     try {
         await client.join(APP_ID, CHANNEL, TOKEN, UID);
+        localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+
+        let player = `
+            <div class="video-container" id="user-container-${UID}">
+                <div class="username-wrapper"><span class="user-name">${NAME}</span></div>
+                <div class="video-player" id="user-${UID}"></div>
+            </div>`;
+        document.getElementById('video-streams').insertAdjacentHTML('beforeend', player);
+
+        localTracks[1].play(`user-${UID}`);
+        await client.publish([localTracks[0], localTracks[1]]);
+
+        console.log("Successfully joined the channel:", CHANNEL);
     } catch (error) {
-        console.error(error);
+        console.error("Failed to join the stream:", error);
+        alert(`Failed to join the stream: ${error.message}`);
         window.open('/', '_self');
     }
-
-    localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
-
-    let member = await createMember();
-
-    let player = `<div class="video-container" id="user-container-${UID}">
-                    <div class="username-wrapper"><span class="user-name">${member.name}</span></div>
-                    <div class="video-player" id="user-${UID}"></div>
-                </div>`;
-    document.getElementById('video-streams').insertAdjacentHTML('beforeend', player);
-
-    localTracks[1].play(`user-${UID}`);
-
-    await client.publish([localTracks[0], localTracks[1]]);
-
-    // Notify other users that this user has joined
-    socket.send(JSON.stringify({
-        type: 'user-joined',
-        user: { uid: UID, name: member.name },
-        mediaType: 'video'
-    }));
 };
+
+
+
+
+async function joinStream() {
+    try {
+        console.log("Joining stream with APP_ID:", APP_ID, "CHANNEL:", CHANNEL, "TOKEN:", TOKEN);
+
+        await client.join(APP_ID, CHANNEL, TOKEN, UID);
+
+        // Create and publish local tracks
+        localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+        console.log("Local tracks created:", localTracks);
+
+        const localContainer = document.getElementById("local-player");
+        localTracks[1].play(localContainer);
+        console.log("Local video playing in container:", localContainer);
+
+        await client.publish(localTracks);
+        console.log("Local tracks published");
+
+        // Handle remote users
+        client.on("user-published", async (user, mediaType) => {
+            console.log("User published:", user, "Media type:", mediaType);
+            await client.subscribe(user, mediaType);
+
+            if (mediaType === "video") {
+                const remoteContainer = document.createElement("div");
+                remoteContainer.id = `user-${user.uid}`;
+                document.getElementById("remote-player").append(remoteContainer);
+                user.videoTrack.play(remoteContainer);
+                console.log("Remote video playing in container:", remoteContainer);
+            }
+
+            if (mediaType === "audio") {
+                user.audioTrack.play();
+                console.log("Remote audio playing for user:", user.uid);
+            }
+        });
+
+        client.on("user-left", (user) => {
+            console.log("User left:", user.uid);
+            const remoteContainer = document.getElementById(`user-${user.uid}`);
+            if (remoteContainer) remoteContainer.remove();
+        });
+    } catch (error) {
+        console.error("Failed to join the stream:", error);
+    }
+}
+
 
 // Handle when another user joins
 let handleUserJoined = async (user, mediaType) => {
@@ -177,7 +230,12 @@ let deleteMember = async () => {
     });
 };
 
-joinAndDisplayLocalStream();
+document.addEventListener("DOMContentLoaded", () => {
+    joinAndDisplayLocalStream();
+});
+
+//joinStream();
+
 
 document.getElementById('leave-btn').addEventListener('click', leaveAndRemoveLocalStream);
 document.getElementById('camera-btn').addEventListener('click', toggleCamera);

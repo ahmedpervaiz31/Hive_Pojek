@@ -1,4 +1,4 @@
-{% for chat in chats %}
+{% for chat in chats|slice:":10" %}
   {% if chat.hive.status == 'public'%}
 
     <div class="activities__box">

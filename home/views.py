@@ -104,54 +104,16 @@ def home(request):
   return render(request, 'home/home.html', context)
 
 # CRUD Operations
-# def hive(request, pk):
-#   hive = get_object_or_404(Hive, id=pk)
-
-#   chats = hive.message_set.all().order_by('-created_at')  # get all messages for that hive
-#   title = f"{hive.buzz} - Hive"
-#   members = hive.members.all()
-  
-  
-#   if request.method == 'POST':  # add a new message, along with user
-    
-#     body = request.POST.get('body')
-#     file = request.FILES.get('file')
-
-#     # Validate file type and size
-#     if file:
-#         valid_extensions = ['.jpg', '.png', '.pdf', '.docx']
-#         if not any(file.name.endswith(ext) for ext in valid_extensions):
-#             messages.error(request, 'Invalid file type')
-#             return redirect('hive', pk=hive.id)
-
-#         if file.size > 5 * 1024 * 1024:  # 5 MB limit
-#             messages.error(request, 'File too large (max 5MB)')
-#             return redirect('hive', pk=hive.id)
-          
-          
-#     Message.objects.create(  
-#       user = request.user,
-#       hive = hive,
-#       body = body,
-#       file=file,
-      
-#     )
-#     hive.members.add(request.user)
-#     return redirect('hive', pk = hive.id)
-    
-#   context = {
-#     'hive': hive,
-#     'chats': chats,
-#     'title': title,
-#     'members': members,
-#   }
-#   return render(request, 'home/hive.html', context)
-
 def hive(request, pk):
     hive = get_object_or_404(Hive, id=pk)
-    chats = hive.message_set.all().order_by('-created_at')
+    #chats = hive.message_set.all().order_by('-created_at')
     title = f"{hive.buzz} - Hive"
     members = hive.members.all()
+    
+    pinned_messages = hive.message_set.filter(is_pinned=True).order_by('-created_at')
+
+    # Get all messages for that hive
+    chats = hive.message_set.filter(is_pinned=False).order_by('-created_at')  # Exclude pinned messages from regular list
     
     spam_words = load_spam_words()
 
@@ -202,6 +164,7 @@ def hive(request, pk):
         'chats': chats,
         'title': title,
         'members': members,
+        'pinned_messages': pinned_messages,
     }
     return render(request, 'home/hive.html', context)
 
@@ -314,18 +277,6 @@ def deleteHive(request, pk):
   
   return render(request, 'home/delete.html', {'obj': hive})
 
-# @login_required(login_url='login')
-# def deleteMessage(request, pk):
-#   message = Message.objects.get(id=pk)
-  
-#   if request.user != message.user:
-#     return HttpResponse("Nah fam i can't allow it")
-  
-#   if request.method == "POST":
-#     message.delete()
-#     return redirect('homepage')
-  
-#   return render(request, 'home/delete.html', {'obj': message})
 
 
 def delete_message(request, message_id):
@@ -369,23 +320,6 @@ def pin_message(request, hive_id, message_id):
     message.save()
 
     return JsonResponse({'success': True, 'is_pinned': message.is_pinned, 'message_id': message.id})
-  
-  
-# def updateMessage(request, pk):
-#     message = Message.objects.get(id=pk)
-#     form = HiveForm(instance=hive) #pre-fill with values
-    
-#     if request.user != message.user:
-#       return HttpResponse("Nah fam i can't allow it")
-    
-#     if request.method == 'POST':  #ensure the current editable hive is updated
-#       form = HiveForm(request.POST, instance=hive)
-#       if form.is_valid():
-#         form.save()
-#         return redirect('homepage')
-      
-#     return render(request, 'home/hiveForm.html', {'form': form})
-
 
 def userProfile(request, pk):
   user = User.objects.get(id=pk)

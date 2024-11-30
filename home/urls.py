@@ -5,6 +5,8 @@ urlpatterns = [
   path('login/', views.loginView, name='login'),
   path('register/', views.registerUser, name='register'),
   path('logout/', views.logoutView, name='logout'),
+  path('hive/<str:pk>/check_password/',views.check_hive_password,name='check_hive_password'),
+
   # path('index', views.index, name="index"),
   # path("<str:room_name>/", views.room, name="hiveroom"),
   path('', views.home, name="homepage"),

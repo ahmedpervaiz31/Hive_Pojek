@@ -110,6 +110,16 @@
                   <a href="{{ chat.file.url }}" target="_blank">Download File</a>
                 </p>
                 {% endif %}
+                {% if chat.audio %}
+                <!-- Voice message section -->
+                <div class="voice-message-card">
+                  <p class="voice-message-title">🎙️ Voice Message</p>
+                  <audio controls class="voice-message-audio">
+                    <source src="{{ chat.audio.url }}" type="audio/wav">
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              {% endif %}
                 {% if request.user == hive.creator %}
                     <form action="{% url 'delete-message' chat.id %}" method="POST" style="display:inline;">
                         {% csrf_token %}
@@ -138,7 +148,11 @@
           <input name="body" placeholder="Type a message..."/>
           <input type="file" name="file" />
           <button type="submit" style="border-radius: 5px; background-color:#696d97; color:#e0dddd; padding: 8px;">Send</button>
+          <button id="record-btn" style="border-radius: 5px; background-color:#696d97; color:#e0dddd; padding: 5px;">Record</button>
+          <button type="submit" id="send-btn" style="border-radius: 5px; background-color:#696d97; color:#e0dddd; padding: 5px;">Send Voice Message</button>
+
         </form>
+        <audio id="voice-preview" controls style="display: none; margin-top: 10px; width: 100%;"></audio>
 
       </div>
     </div>
@@ -197,6 +211,8 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    const name = "{{hive.buzz}}"
+    toastr.success(`Welcome To ${name}!`);
     const hiveId = "{{ hive.id }}";
     const chatSocket = new WebSocket(`ws://${window.location.host}/ws/hive/${hiveId}/`);
 
@@ -209,19 +225,22 @@
       const chatBox = document.getElementById("chat-box");
 
       if (data.error) {
-        alert(data.error); // Show warning to the user
+        
         toastr.error(data.error)
         return;
       }
 
       if (data.message) {
+        
+        toastr.success(`${data.username} sent a message!`)
+
         const messageElement = document.createElement("p");
         messageElement.textContent = `${data.username}: ${data.message}`;
         chatBox.appendChild(messageElement);
-        toastr.success(`${data.username} sent a message!`)
       }
 
       if (data.file_url) {
+        toastr.info("A file was shared!", "New File");
         const fileLink = document.createElement("a");
         fileLink.href = data.file_url;
         fileLink.textContent = "View File";
@@ -237,54 +256,74 @@
     const messageForm = document.getElementById("chat-message-form");
     messageForm.onsubmit = function (e) {
       e.preventDefault();
+  
       const messageInput = messageForm.querySelector("input[name='body']");
       const fileInput = messageForm.querySelector("input[name='file']").files[0];
       const reader = new FileReader();
-
+  
       if (fileInput) {
-        reader.readAsDataURL(fileInput);
-        reader.onload = function () {
-          chatSocket.send(JSON.stringify({ file: reader.result }));
-        };
-      } else {
-        chatSocket.send(JSON.stringify({ message: messageInput.value }));
+          reader.readAsDataURL(fileInput);
+          reader.onload = function () {
+              chatSocket.send(JSON.stringify({ file: reader.result }));
+              toastr.success("File uploaded successfully", "File Sent");
+          };
+      } else if (messageInput.value) {
+          chatSocket.send(JSON.stringify({ message: messageInput.value }));
+          toastr.success("Message sent successfully", "Message Sent");
       }
-
-      messageInput.value = "";
-      messageForm.querySelector("input[name='file']").value = "";
-    };
+  
+      messageInput.value = ""; // Clear input
+      messageForm.querySelector("input[name='file']").value = ""; // Clear file input
+  };
   });
 </script> 
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-      const toggle = document.getElementById("theme-toggle");
-      const body = document.body;
-      const hiveId = "{{ hive.id }}";
+    const toggle = document.getElementById("theme-toggle");
+    const body = document.body;
+    const hiveId = "{{ hive.id }}";
 
-      // Set initial theme
-      const currentTheme = "{{ hive.theme }}";
-      if (currentTheme === "dark") {
-          body.classList.add("dark-mode");
-      }
+    // Apply initial theme based on the hive's theme status
+    const currentTheme = "{{ hive.theme }}";
+    if (currentTheme === "dark") {
+        body.classList.add("dark-mode");
+    } else {
+        body.classList.remove("dark-mode");
+    }
 
-      // Toggle theme
-      toggle.addEventListener("change", async function () {
-          const isDarkMode = toggle.checked;
-          body.classList.toggle("dark-mode", isDarkMode);
+    // Add event listener to handle theme toggle
+    toggle.addEventListener("change", async function () {
+        const isDarkMode = toggle.checked;
 
-          // Update the backend
-          const theme = isDarkMode ? "dark" : "light";
-          await fetch(`/update-hive-theme/${hiveId}/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}",
-            },
-            body: JSON.stringify({ theme: theme }),
-        });
-      });
-  });
+        // Toggle CSS class on the body element
+        if (isDarkMode) {
+            body.classList.add("dark-mode");
+        } else {
+            body.classList.remove("dark-mode");
+        }
+
+        // Update theme in the backend
+        const theme = isDarkMode ? "dark" : "light";
+
+        try {
+            const response = await fetch(`/update-hive-theme/${hiveId}/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: JSON.stringify({ theme: theme }),
+            });
+
+            if (!response.ok) {
+                console.error("Failed to update theme on the server");
+            }
+        } catch (error) {
+            console.error("Error updating theme:", error);
+        }
+    });
+});
 </script>
 
 <script>
@@ -325,6 +364,78 @@
       });
     });
   });
+</script>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const recordButton = document.getElementById("record-btn");
+    const sendButton = document.getElementById("send-btn");
+    const audioPreview = document.getElementById("voice-preview");
+    const messageForm = document.getElementById("chat-message-form");
+    let mediaRecorder;
+    let audioChunks = [];
+    // Handle recording
+    recordButton.addEventListener("click", async () => {
+      if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+          audioChunks = [];
+          const audioURL = URL.createObjectURL(audioBlob);
+          audioPreview.src = audioURL;
+          audioPreview.style.display = "block";
+          sendButton.disabled = false;
+          // Attach the Blob to the send button
+          sendButton.audioBlob = audioBlob;
+        };
+        mediaRecorder.start();
+        recordButton.textContent = "⏹ Stop Recording";
+      } else {
+        mediaRecorder.stop();
+        recordButton.textContent = "🎤 Record";
+      }
+    });
+    // Handle sending the form (voice or text message)
+    messageForm.onsubmit = async function (e) {
+      e.preventDefault();
+      const messageInput = messageForm.querySelector("input[name='body']");
+      const fileInput = messageForm.querySelector("input[name='file']").files[0];
+      let formData = new FormData();
+      formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+      // If there is an audio message
+      if (sendButton.audioBlob) {
+        formData.append("audio", sendButton.audioBlob, "voice-message.wav");
+        sendButton.disabled = true; // Disable after sending
+        audioPreview.style.display = "none"; // Hide preview after sending
+        sendButton.audioBlob = null; // Reset audioBlob
+      }
+      // If there is a text message
+      if (messageInput.value) {
+        formData.append("body", messageInput.value);
+      }
+      // If there is a file attachment
+      if (fileInput) {
+        formData.append("file", fileInput);
+      }
+      // Send the form data via POST
+      const response = await fetch("", {
+        method: "POST",
+        body: formData,
+      });
+      if (response.ok) {
+        messageInput.value = ""; // Clear the message input field
+        messageForm.querySelector("input[name='file']").value = ""; // Clear the file input
+      } else {
+        alert("Failed to send message.");
+      }
+    };
+  });
+
 </script>
 
 {% comment %} 
@@ -439,6 +550,37 @@ input:checked + .slider:before {
 .thread.pinned {
   background-color: #2196f3;
   border-left: 4px solid #f0ad4e;
+}
+
+.voice-message-card {
+  background: linear-gradient(135deg, #f0f4f8, #d9e4f5);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 5px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  max-width: 400px;
+}
+
+.voice-message-title {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #4a4e69;
+  margin: 0;
+}
+
+.voice-message-audio {
+  width: 100%;
+  outline: none;
+  border-radius: 8px;
+}
+
+.voice-message-audio::-webkit-media-controls-panel {
+  background-color: #f4f9ff;
+  border-radius: 8px;
 }
 
 </style>

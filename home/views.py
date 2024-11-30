@@ -20,6 +20,8 @@ import random,time
 import json
 from .models import HiveMember
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import check_password
+
 
 import os
 from home.utils import load_spam_words
@@ -147,22 +149,25 @@ def home(request):
 
 def hive(request, pk):
     hive = get_object_or_404(Hive, id=pk)
-    pinned_messages = hive.message_set.filter(is_pinned=True).order_by('-created_at')
-
-    # Get all messages for that hive
-    chats = hive.message_set.filter(is_pinned=False).order_by('-created_at')  # Exclude pinned messages from regular list
+    chats = hive.message_set.all().order_by('-created_at')
     title = f"{hive.buzz} - Hive"
     members = hive.members.all()
     
-    # Load spam words
     spam_words = load_spam_words()
 
-    if request.method == 'POST':  # Add a new message, along with the user
-        body = request.POST.get('body', '').lower()
-        file = request.FILES.get('file')
+    # Check if the hive is private and the user is not a member
+    if hive.status == 'private' and request.user not in hive.members.all():
+        # Redirect to password validation if the hive is private
+        return redirect('check_hive_password', pk=hive.id)
 
-        # Check for spam words in the body
-        if any(spam_word in body for spam_word in spam_words):
+    # Handle POST request for new messages
+    if request.method == 'POST':
+        body = request.POST.get('body', '').strip()
+        file = request.FILES.get('file')
+        audio = request.FILES.get('audio')  # Voice message
+        
+        # Check if body exists before checking for spam words
+        if body and any(spam_word in body for spam_word in spam_words):
             messages.error(request, 'Your message contains offensive words and cannot be sent.')
             return redirect('hive', pk=hive.id)
 
@@ -177,24 +182,42 @@ def hive(request, pk):
                 messages.error(request, 'File too large (max 5MB)')
                 return redirect('hive', pk=hive.id)
 
-        # Create the message
-        Message.objects.create(
-            user=request.user,
-            hive=hive,
-            body=body,
-            file=file,
-        )
-        hive.members.add(request.user)  # Add the user to the hive's members
-        return redirect('hive', pk=hive.id)
+        # Create a new message
+        if body or file or audio:  # Only create a message if there's content
+            Message.objects.create(
+                user=request.user,
+                hive=hive,
+                body=body,
+                file=file,
+                audio=audio,
+            )
+            return redirect('hive', pk=hive.id)
+        else:
+            messages.error(request, 'Message cannot be empty.')
+            return redirect('hive', pk=hive.id)
 
+    # If GET request or POST is invalid, render the hive page
     context = {
         'hive': hive,
         'chats': chats,
-        'pinned_messages': pinned_messages,
         'title': title,
         'members': members,
     }
     return render(request, 'home/hive.html', context)
+
+def check_hive_password(request,pk):
+  hive=get_object_or_404(Hive,id=pk)
+  if request.method == "POST":
+     entered_password=request.POST.get('password','').strip()
+
+     if entered_password == hive.password:
+        hive.members.add(request.user)
+        return redirect('hive',pk=hive.id)
+     else:
+        messages.error(request,"Incorrect Password.Enter Again!")
+        return redirect('check_hive_password',pk=hive.id)
+
+  return render(request,'home/hive_password.html',{"hive":hive})
 
 
 def send_message(request, hive_id):
@@ -238,13 +261,21 @@ def createHive(request):
         
         # Get or create the topic from the input
         topic, created = Topic.objects.get_or_create(name=topic_name)
+        
+        # Get visibility status (public or private)
+        status = request.POST.get('status')
+
+        # Get the password only if the hive is private
+        password = request.POST.get('password') if status == 'private' else None
 
         # Create a new Hive object
         Hive.objects.create(
             creator=request.user,  # Set the creator to the current logged-in user
             topic=topic,           # Use the topic object created or fetched above
             buzz=request.POST.get('buzz'),
-            details=request.POST.get('deets')  # Changed 'deets' to match form field names
+            details=request.POST.get('deets'),  # Changed 'deets' to match form field names
+            status=status,  # Set the hive status to public or private
+            password=password if status == 'private' else None,
         )
         
         return redirect('homepage')
@@ -268,6 +299,7 @@ def updateHive(request, pk):
       return redirect('homepage')
     
   return render(request, 'home/hiveForm.html', {'form': form, 'topics': topics,})
+
 
 @login_required(login_url='login')
 def deleteHive(request, pk):

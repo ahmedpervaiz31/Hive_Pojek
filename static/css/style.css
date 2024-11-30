@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap");
 
-:root {
+/* :root {
   --color-main: #71c6dd;
   --color-main-light: #e1f6fb;
   --color-dark: #3f4156;
@@ -12,7 +12,54 @@
   --color-bg: #2d2d39;
   --color-success: #5dd693;
   --color-error: #fc4b0b;
+} */
+
+
+:root {
+  --color-main: #FFC107; /* Bumblebee yellow */
+  --color-main-light: #FFD54F; /* Lighter yellow */
+  --color-dark: #0A1128; /* Dark navy */
+  --color-dark-medium: #1A2333; /* Medium navy */
+  --color-dark-light: #2A3244; /* Light navy */
+  --color-light: #FFE082; /* Pale yellow */
+  --color-gray: #8B8B8B; /* Neutral gray */
+  --color-light-gray: #E0E0E0; /* Light gray for secondary text */
+  --color-bg: #0A1128; /* Dark navy for background */
+  --color-success: #FFEB3B; /* Bright yellow for success */
+  --color-error: #FC4B0B; /* Error red (unchanged) */
 }
+
+
+/* Dark Mode */
+:root {
+  --color-main: #FFC107; /* Bumblebee yellow */
+  --color-main-light: #FFD54F; /* Lighter yellow */
+  --color-dark: #0A1128; /* Dark navy */
+  --color-dark-medium: #1A2333; /* Medium navy */
+  --color-dark-light: #2A3244; /* Light navy */
+  --color-light: #FFE082; /* Pale yellow */
+  --color-gray: #8B8B8B; /* Neutral gray */
+  --color-light-gray: #E0E0E0; /* Light gray for secondary text */
+  --color-bg: #0A1128; /* Dark navy background */
+  --color-success: #FFEB3B; /* Bright yellow for success */
+  --color-error: #FC4B0B; /* Error red */
+}
+
+/* Light Mode */
+:root.light-mode {
+  --color-main: #FFD700; /* Golden yellow */
+  --color-main-light: #FFF59D; /* Lighter yellow */
+  --color-dark: #F5F5F5; /* Light gray for background */
+  --color-dark-medium: #E0E0E0; /* Medium gray */
+  --color-dark-light: #D3D3D3; /* Lighter gray */
+  --color-light: #333333; /* Dark text */
+  --color-gray: #666666; /* Neutral gray for text */
+  --color-light-gray: #999999; /* Lighter gray */
+  --color-bg: #FFFFFF; /* White background */
+  --color-success: #FFA000; /* Orange for success */
+  --color-error: #D32F2F; /* Error red */
+}
+
 
 /*========== base styles ==========*/
 
@@ -46,12 +93,21 @@ html {
   }
 }
 
-body {
+/* body {
   line-height: 1.6;
   font-weight: 400;
   font-size: 1.5rem;
   color: var(--color-light-gray);
   background-color: var(--color-bg);
+  min-height: 100vh;
+} */
+
+body {
+  line-height: 1.6;
+  font-weight: 400;
+  font-size: 1.5rem;
+  color: var(--color-light-gray); /* Light gray text */
+  background-color: var(--color-bg); /* Dark navy background */
   min-height: 100vh;
 }
 
@@ -133,6 +189,24 @@ a {
   outline: none;
   cursor: pointer;
 }
+
+
+.btn {
+  background-color: var(--color-main);
+  color: var(--color-dark);
+  border: 1px solid var(--color-main);
+}
+
+.btn:hover {
+  background-color: var(--color-main-light);
+  color: var(--color-dark);
+}
+
+.btn--dark {
+  background-color: var(--color-dark-light);
+  color: var(--color-light);
+}
+
 
 .avatar {
   position: relative;
@@ -262,6 +336,20 @@ a {
   .mobile-menu {
     display: none;
   }
+}
+
+
+a {
+  color: var(--color-main);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-light); /* Pale yellow */
 }
 
 /*==============================
@@ -645,7 +733,7 @@ a {
 
 .roomListRoom {
   margin-bottom: 2.4rem;
-  background-color: var(--color-dark);
+  background-color: var(--color-dark-light);
   border-radius: 1rem;
   padding: 2rem;
 }
@@ -1332,6 +1420,112 @@ body.dark-mode {
 
 #leave-btn{
     background-color: rgb(255,80,80,1);
+
+
+
+.header {
+  background-color: var(--color-dark-medium);
+  color: var(--color-light);
+}
+
+.threads {
+  background: var(--color-dark-light);
+  border-radius: 0.7rem;
+  color: var(--color-light);
+}
+
+.room {
+  background: var(--color-dark-medium);
+  border-radius: 0.7rem;
+  color: var(--color-light);
+}
+
+.header {
+  background: linear-gradient(135deg, var(--color-dark), var(--color-dark-medium));
+}
+
+.btn--main {
+  background: linear-gradient(90deg, var(--color-main), var(--color-main-light));
+  color: var(--color-dark);
+}
+
+
+a {
+  color: var(--color-main);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-light); /* Pale yellow */
+}
+
+
+
+
+
+
+
+
+
+body {
+  line-height: 1.6;
+  font-weight: 400;
+  font-size: 1.5rem;
+  color: var(--color-light-gray);
+  background-color: var(--color-bg);
+  min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+a {
+  color: var(--color-main);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  background-color: var(--color-main);
+  color: var(--color-dark);
+  border: 1px solid var(--color-main);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.btn:hover {
+  background-color: var(--color-main-light);
+  color: var(--color-dark);
+}
+
+.header {
+  background-color: var(--color-dark-medium);
+  color: var(--color-light);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.threads {
+  background: var(--color-dark-light);
+  border-radius: 0.7rem;
+  color: var(--color-light);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.room {
+  background: var(--color-dark-medium);
+  border-radius: 0.7rem;
+  color: var(--color-light);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+
+
+
+
 
 
 /* --color-main: #71c6dd;

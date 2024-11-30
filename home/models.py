@@ -29,6 +29,13 @@ class Hive(models.Model):
   created_at = models.DateTimeField(auto_now_add=True)
   theme = models.CharField(max_length=10, choices=[('light', 'Light'), ('dark', 'Dark')], default='dark')
   
+  STATUS_CHOICES = (
+        ('public', 'Public'),
+        ('private', 'Private'),
+  )
+  status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='public')
+  password = models.CharField(max_length=255, blank=True, null=True)  # Used only for private hives
+  
   class Meta:
     ordering = ['-updated', '-created_at']
     
@@ -44,6 +51,8 @@ class Message(models.Model):
   updated = models.DateTimeField(auto_now=True) #auto timestamp
   created_at = models.DateTimeField(auto_now_add=True)
   is_pinned = models.BooleanField(default=False)
+  audio = models.FileField(upload_to="voice_messages/", blank=True, null=True)
+
 
   
   class Meta:

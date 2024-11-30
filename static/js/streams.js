@@ -177,7 +177,7 @@ let leaveAndRemoveLocalStream = async () => {
         user: { uid: UID }
     }));
 
-    window.open('/lobby', '_self');
+    window.open('/', '_self');
 };
 
 let toggleCamera = async(e)=>{

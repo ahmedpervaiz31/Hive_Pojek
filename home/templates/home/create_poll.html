@@ -1,0 +1,10 @@
+{% extends "main.html" %}
+{% block content %}
+<h1>Create Poll</h1>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Create Poll</button>
+</form>
+<a href="{% url 'hive' hive.id %}">Back to Hive</a>
+{% endblock %}

@@ -3,13 +3,13 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db.models import Q
-from .models import Hive, Topic, Message, User
+from .models import Hive, Topic, Message, User, Poll, Option, Vote
 import json
 # from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 # from django.contrib.auth.forms import UserCreationForm
-from .forms import UserForm, HiveForm, myUserCreationForm
+from .forms import UserForm, HiveForm, myUserCreationForm, PollForm
 import urllib.parse
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -501,3 +501,75 @@ def deleteMember(request):
     except HiveMember.DoesNotExist:
         return JsonResponse({'error': 'Member does not exist!'}, status=404, safe=False)
       
+      
+      
+#polls views
+def poll_list(request, hive_id):
+    hive = get_object_or_404(Hive, id=hive_id)
+    polls = hive.polls.all()
+    return render(request, 'home/poll_list.html', {'hive': hive, 'polls': polls})
+
+@login_required
+def poll_detail(request, poll_id):
+    poll = get_object_or_404(Poll, id=poll_id)
+    hive_id = poll.hive.id  # Assuming Poll has a ForeignKey to Hive
+
+    if request.method == "POST":
+        option_id = request.POST.get("option")
+        if not option_id:
+            messages.error(request, "Please select an option.")
+            return redirect("poll_detail", poll_id=poll.id)
+
+        option = get_object_or_404(Option, id=option_id)
+
+        if Vote.objects.filter(option__poll=poll, user=request.user).exists():
+            messages.error(request, "You have already voted in this poll.")
+        else:
+            Vote.objects.create(option=option, user=request.user)
+            messages.success(request, "Vote submitted successfully!")
+        return redirect("poll_detail", poll_id=poll.id)
+
+    return render(request, "home/poll_detail.html", {"poll": poll, "hive_id": hive_id})
+
+
+@login_required
+def submit_vote(request):
+    if request.method == "POST":
+        option_id = request.POST.get("option")  # Get the selected option ID from the form
+        if not option_id:
+            messages.error(request, "Please select an option.")
+            return redirect(request.META.get('HTTP_REFERER', '/'))  # Redirect back to the poll
+
+        option = get_object_or_404(Option, id=option_id)
+        poll = option.poll
+
+        # Check if the user has already voted in this poll
+        if Vote.objects.filter(option__poll=poll, user=request.user).exists():
+            messages.error(request, "You have already voted in this poll.")
+        else:
+            Vote.objects.create(option=option, user=request.user)
+            messages.success(request, "Vote submitted successfully!")
+
+        return redirect("poll_detail", poll_id=poll.id)
+
+    return redirect("homepage")  # Fallback redirect if accessed via GET
+
+
+@login_required
+def create_poll(request, hive_id):
+    hive = get_object_or_404(Hive, id=hive_id)
+
+    if request.user != hive.creator:
+        messages.error(request, "Only the Hive creator can create polls.")
+        return redirect("hive", pk=hive.id)
+
+    if request.method == "POST":
+        form = PollForm(request.POST)
+        if form.is_valid():
+            form.save(commit=True, hive=hive)
+            messages.success(request, "Poll created successfully!")
+            return redirect("hive", pk=hive.id)
+    else:
+        form = PollForm()
+
+    return render(request, "home/create_poll.html", {"form": form, "hive": hive})

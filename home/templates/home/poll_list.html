@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="polls-container">
+    <h1 class="poll-title">Polls for {{ hive.buzz }}</h1>
+    <ul class="polls-list">
+        {% for poll in polls %}
+        <li class="poll-item">
+            <a href="{% url 'poll_detail' poll.id %}" class="poll-link">{{ poll.question }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'create_poll' hive.id %}" class="btn btn-secondary">Create New Poll</a>
+</div>
+{% endblock %}

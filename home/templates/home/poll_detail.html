@@ -1,0 +1,89 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="poll-detail-wrapper">
+    <div class="poll-detail-card">
+        <h1 class="poll-title">{{ poll.question }}</h1>
+        <form method="POST" class="poll-form">
+            {% csrf_token %}
+            {% for option in poll.options.all %}
+            <div class="poll-option">
+                <input type="radio" id="option-{{ option.id }}" name="option" value="{{ option.id }}" />
+                <label for="option-{{ option.id }}">{{ option.text }} ({{ option.votes.count }} votes)</label>
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Submit Vote</button>
+        </form>
+        <a href="{% url 'hive' poll.hive.id %}" class="btn btn-secondary">Back to Hive</a>
+    </div>
+</div>
+
+<style>
+  .poll-detail-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--background-color);
+    padding: 20px;
+}
+
+.poll-detail-card {
+    background: #2A3244; 
+    color: #ffc107;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+}
+
+.poll-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    
+}
+
+.poll-form {
+    margin-bottom: 20px;
+}
+
+.poll-option {
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.poll-option input {
+    margin-right: 10px;
+}
+
+.btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    border: none;
+}
+
+.btn-secondary {
+    border: none;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+
+</style>
+{% endblock %}
+
+
+
+
+
+
+
+

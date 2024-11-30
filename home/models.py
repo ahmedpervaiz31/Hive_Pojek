@@ -72,4 +72,25 @@ class HiveMember(models.Model):
   def __str__(self):
       return self.name
   
-  
+
+class Poll(models.Model):
+    hive = models.ForeignKey(Hive, on_delete=models.CASCADE, related_name="polls")
+    question = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.question
+
+class Option(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="options")
+    text = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.text} ({self.poll.question})"
+
+class Vote(models.Model):
+    option = models.ForeignKey(Option, on_delete=models.CASCADE, related_name="votes")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('option', 'user')  # Prevent duplicate votes per user per option

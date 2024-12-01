@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
@@ -52,6 +53,9 @@ class Message(models.Model):
   created_at = models.DateTimeField(auto_now_add=True)
   is_pinned = models.BooleanField(default=False)
   audio = models.FileField(upload_to="voice_messages/", blank=True, null=True)
+  vanish_mode = models.BooleanField(default=False) #flag 
+  vanish_time = models.DateTimeField(blank=True,null=True) #determines the time after which it will disappear
+  
 
 
   
@@ -61,6 +65,13 @@ class Message(models.Model):
     
   def __str__(self):
     return self.body[:50]
+  
+  def has_vanished(self):
+        """Check if the message has vanished based on vanish_time."""
+        if self.vanish_mode and self.vanish_time:
+            return timezone.now() > self.vanish_time
+        return False
+      
   
   
   
@@ -72,6 +83,20 @@ class HiveMember(models.Model):
   def __str__(self):
       return self.name
   
+  
+class UserRole(models.Model):
+    ROLE_CHOICES = [
+        ('queen', 'Queen'),
+        ('moderator', 'Moderator'),
+        ('bee', 'Bee'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    hive = models.ForeignKey(Hive, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='bee')  # Restrict role choices
+    def __str__(self):
+        return f"{self.user.username} - {self.role} in {self.hive.buzz}"
+      
+      
 
 class Poll(models.Model):
     hive = models.ForeignKey(Hive, on_delete=models.CASCADE, related_name="polls")
@@ -94,3 +119,5 @@ class Vote(models.Model):
 
     class Meta:
         unique_together = ('option', 'user')  # Prevent duplicate votes per user per option
+        
+        

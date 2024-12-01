@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db.models import Q
-from .models import Hive, Topic, Message, User, Poll, Option, Vote
+from .models import Hive, Topic, Message, User, Poll, Option, Vote, UserRole
 import json
 # from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -21,6 +21,13 @@ import json
 from .models import HiveMember
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
+
+from django.utils import timezone
+from datetime import timedelta
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Hive, Message
+from django.utils.timezone import now
 
 
 import os
@@ -116,6 +123,40 @@ def hive(request, pk):
     chats = hive.message_set.filter(is_pinned=False).order_by('-created_at')  # Exclude pinned messages from regular list
     
     spam_words = load_spam_words()
+    
+    current_time = timezone.now()
+    user_role_instance= UserRole.objects.filter(user=request.user,hive=hive).first()
+    user_role=user_role_instance.role if user_role_instance else 'bee'
+    if request.method == 'POST' and 'assign-role' in request.POST:
+      user_id=request.POST.get('user_id')
+      role=request.POST.get('role')
+      #print(f"Assign Role: user_id = {user_id}, role = {role}")  # Debugging line
+      valid_roles=['queen','bee','moderator', 'creator']
+      if role not in valid_roles:
+        messages.error(request,'Invalid Role Selection!')
+        return redirect('hive',pk=hive.id)
+       
+      if user_role == 'queen':
+        user=get_object_or_404(User,id=user_id)
+        if user == hive.creator:
+          messages.error(request,"Cannot change your own role")
+        else:
+          UserRole.objects.update_or_create(user=user,hive=hive,defaults={'role':role})
+          messages.success(request,f"Assigned {role} role to {user.username}")
+      else:
+         messages.error(request,"Queen can assign roles only")
+    if request.method == 'POST' and 'kick-member' in request.POST:
+      user_id_to_kick=request.POST.get('user_id_to_kick')
+      if user_role in ['queen','moderator']:
+        user_to_kick=get_object_or_404(User,id=user_id_to_kick)
+        if user_to_kick == hive.creator:
+          messages.error(request,'YOU WANNA KICK THE QUEEN! SHE GONNA KICK UR ASS NOW :)')
+        else:
+          hive.members.remove(user_to_kick)
+          messages.success(request,"f{user_to_kick.username} has been kicked from the hive")
+      else:
+        messages.error(request,'ONLY QUEEN/MODERATOR CAN KICK!')
+        
 
     # Check if the hive is private and the user is not a member
     if hive.status == 'private' and request.user not in hive.members.all():
@@ -127,6 +168,10 @@ def hive(request, pk):
         body = request.POST.get('body', '').strip()
         file = request.FILES.get('file')
         audio = request.FILES.get('audio')  # Voice message
+        vanish_mode = request.POST.get("vanish_mode")
+        
+        # If vanish_mode is checked, it will have a value of 'on'; otherwise, it won't be in the POST data
+        vanish_mode = bool(vanish_mode)  # Convert to boolean
         
         # Check if body exists before checking for spam words
         if body and any(spam_word in body for spam_word in spam_words):
@@ -152,7 +197,11 @@ def hive(request, pk):
                 body=body,
                 file=file,
                 audio=audio,
+                vanish_mode=vanish_mode,
+                vanish_time=timezone.now() + timedelta(seconds=30) if vanish_mode else None
             )
+            hive.members.add(request.user)
+
             return redirect('hive', pk=hive.id)
         else:
             messages.error(request, 'Message cannot be empty.')
@@ -165,6 +214,8 @@ def hive(request, pk):
         'title': title,
         'members': members,
         'pinned_messages': pinned_messages,
+        'current_time': current_time,
+        'user_role':user_role,
     }
     return render(request, 'home/hive.html', context)
 
@@ -232,7 +283,7 @@ def createHive(request):
         password = request.POST.get('password') if status == 'private' else None
 
         # Create a new Hive object
-        Hive.objects.create(
+        hive = Hive.objects.create(
             creator=request.user,  # Set the creator to the current logged-in user
             topic=topic,           # Use the topic object created or fetched above
             buzz=request.POST.get('buzz'),
@@ -241,6 +292,8 @@ def createHive(request):
             password=password if status == 'private' else None,
         )
         
+        UserRole.objects.create(user=request.user, hive=hive, role='queen')
+
         return redirect('homepage')
 
     context = {"form": form, "topics": topics}
@@ -493,14 +546,20 @@ def submit_vote(request):
 def create_poll(request, hive_id):
     hive = get_object_or_404(Hive, id=hive_id)
 
-    if request.user != hive.creator:
-        messages.error(request, "Only the Hive creator can create polls.")
+    # Check if the user is the Hive creator or a moderator
+    user_role_instance = UserRole.objects.filter(user=request.user, hive=hive).first()
+    user_role = user_role_instance.role if user_role_instance else 'bee'
+
+    if request.user != hive.creator and user_role != 'moderator':
+        messages.error(request, "Only the Hive creator or moderators can create polls.")
         return redirect("hive", pk=hive.id)
 
     if request.method == "POST":
         form = PollForm(request.POST)
         if form.is_valid():
-            form.save(commit=True, hive=hive)
+            poll = form.save(commit=False)  # Don't commit yet to associate the hive
+            poll.hive = hive  # Associate the Hive with the poll
+            poll.save()  # Save the poll to the database
             messages.success(request, "Poll created successfully!")
             return redirect("hive", pk=hive.id)
     else:

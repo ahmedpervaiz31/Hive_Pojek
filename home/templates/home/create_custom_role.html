@@ -1,0 +1,16 @@
+{% extends 'main.html' %}
+{% block content %}
+<h3>Create Custom Role</h3>
+<form method="POST">
+    {% csrf_token %}
+    <label for="user_id">Select User:</label>
+    <select name="user_id" id="user_id">
+        {% for member in members %}
+            <option value="{{ member.id }}">{{ member.username }}</option>
+        {% endfor %}
+    </select>
+    <label for="custom_role_name">Custom Role Name:</label>
+    <input type="text" name="custom_role_name" id="custom_role_name" required />
+    <button type="submit">Assign Custom Role</button>
+</form>
+{% endblock %}

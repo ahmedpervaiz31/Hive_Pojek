@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        #upload-image {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        #upload-image:hover {
+            border-color: #888;
+        }
+
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            border: 2px dashed #ddd;
+            background-color: #fff;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button, input[type="color"] {
+            padding: 10px 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #draw-color {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Photo Editor</h1>
+    <input type="file" id="upload-image" accept="image/*">
+    <div id="canvas-container">
+        <canvas id="editor-canvas"></canvas>
+    </div>
+    <div class="controls">
+        <button id="crop-button">Crop</button>
+        <label for="draw-color">Draw Color:</label>
+        <input type="color" id="draw-color" value="#ff0000">
+        <button id="next-button">Next</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('editor-canvas');
+        const ctx = canvas.getContext('2d');
+        const uploadImage = document.getElementById('upload-image');
+        const cropButton = document.getElementById('crop-button');
+        const drawColor = document.getElementById('draw-color');
+        const nextButton = document.getElementById('next-button');
+
+        let image = new Image();
+        let isDrawing = false;
+        let isSelecting = false;
+        let cropRect = null;
+        let mode = "draw"; // Current mode: "draw" or "select"
+        let startX, startY, endX, endY;
+        let drawingData = [];  // To store drawing actions
+
+        const canvasContainer = document.getElementById('canvas-container');
+
+        // Set canvas dimensions to match the container
+        canvas.width = canvasContainer.clientWidth;
+        canvas.height = canvasContainer.clientHeight;
+        
+        // Adjust for high DPI (Retina displays)
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width *= dpr;
+        canvas.height *= dpr;
+        ctx.scale(dpr, dpr); // Scale context for proper rendering
+        
+        // Handle image upload
+        uploadImage.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    image.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        image.onload = () => {
+            const canvasAspect = canvas.width / canvas.height;
+            const imageAspect = image.width / image.height;
+        
+            let drawWidth, drawHeight, offsetX, offsetY;
+        
+            if (imageAspect > canvasAspect) {
+                drawWidth = canvas.width;
+                drawHeight = canvas.width / imageAspect;
+                offsetX = 0;
+                offsetY = (canvas.height - drawHeight) / 2;
+            } else {
+                drawHeight = canvas.height;
+                drawWidth = canvas.height * imageAspect;
+                offsetX = (canvas.width - drawWidth) / 2;
+                offsetY = 0;
+            }
+        
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+        };
+        
+        
+        function drawStoredActions() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before redrawing
+        
+            // Redraw the image at the new canvas size
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        
+            // Draw the stored actions (e.g., drawing data)
+            for (let action of drawingData) {
+                ctx.fillStyle = action.color;
+                ctx.fillRect(action.x, action.y, action.size, action.size);
+            }
+        }
+        
+
+        nextButton.addEventListener('click', () => {
+            // Convert canvas content to a Base64 image string
+            const imageData = canvas.toDataURL(); // This is the correct variable to use
+            
+            // Store the image in session storage
+            sessionStorage.setItem("uploadedImage", imageData); // Save the imageData, not imageBase64
+            
+            const savedImageData = sessionStorage.getItem('uploadedImage');
+            console.log("Retrieved imageData from sessionStorage:", savedImageData); // Verify the saved image data
+        
+            // Redirect to the chat or handle further action
+            alert('Image saved! You can now send it in the Hive chat.');
+        
+            const currentURL = window.location.href;
+            const newURL = currentURL.replace('photo-editor/', ''); // Adjust URL as needed
+            window.location.href = newURL;
+        });
+        
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect(); // Get canvas position and size
+            const scaleX = canvas.width / rect.width;   // Horizontal scale factor
+            const scaleY = canvas.height / rect.height; // Vertical scale factor
+            return {
+                x: (event.clientX - rect.left) * scaleX, // Adjust for scale
+                y: (event.clientY - rect.top) * scaleY,  // Adjust for scale
+            };
+        }
+        
+        // Drawing mode logic
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(e);
+            if (mode === "draw") {
+                isDrawing = true;
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            } else if (mode === "select") {
+                startX = pos.x;
+                startY = pos.y;
+                isSelecting = true;
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getMousePos(e);
+            if (mode === "draw" && isDrawing) {
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                drawingData.push({ x: pos.x, y: pos.y, color: drawColor.value });
+            } else if (mode === "select" && isSelecting) {
+                endX = pos.x;
+                endY = pos.y;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawStoredActions();
+
+                const width = endX - startX;
+                const height = endY - startY;
+                ctx.beginPath();
+                ctx.rect(startX, startY, width, height);
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        });
+
+
+        canvas.addEventListener('mouseup', () => {
+            if (mode === "draw") {
+                isDrawing = false;
+                ctx.closePath();
+            } else if (mode === "select") {
+                isSelecting = false;
+                cropRect = {
+                    x: Math.max(0, startX),
+                    y: Math.max(0, startY),
+                    width: Math.min(endX - startX, canvas.width - startX),
+                    height: Math.min(endY - startY, canvas.height - startY),
+                };
+            }
+        });
+
+        cropButton.addEventListener('click', () => {
+            if (mode === "select") {
+                if (cropRect) {
+                    // Get the cropped portion of the image
+                    const croppedImage = ctx.getImageData(cropRect.x, cropRect.y, cropRect.width, cropRect.height);
+        
+                    // Adjust drawingData to match the new canvas size after cropping
+                    drawingData = drawingData.map(action => {
+                        if (action.x >= cropRect.x && action.x <= cropRect.x + cropRect.width &&
+                            action.y >= cropRect.y && action.y <= cropRect.y + cropRect.height) {
+                            return {
+                                ...action,
+                                x: action.x - cropRect.x,  // Adjust x-coordinate relative to crop
+                                y: action.y - cropRect.y   // Adjust y-coordinate relative to crop
+                            };
+                        }
+                        return null; // Remove drawing data outside of the crop area
+                    }).filter(action => action !== null);
+        
+                    // Resize the canvas to the cropped dimensions
+                    canvas.width = cropRect.width;
+                    canvas.height = cropRect.height;
+        
+                    const dpr = window.devicePixelRatio || 1;
+                    ctx.scale(dpr, dpr); // Rescale for high DPI screens
+        
+                    // Redraw the cropped portion of the image on the resized canvas
+                    ctx.putImageData(croppedImage, 0, 0);
+        
+                    // Redraw the stored drawing actions
+                    drawStoredActions();
+        
+                    // Reset the crop area and switch back to drawing mode
+                    cropRect = null;
+                    mode = "draw";
+                }
+            } else {
+                // Switch to selection mode for cropping
+                mode = "select";
+                alert('Select a rectangle on the image to crop.');
+                cropRect = null; // Reset previous crop rectangle
+            }
+        });
+                        
+
+        // Download edited image
+        downloadButton.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'edited-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+
+    </script>
+</body>
+</html>

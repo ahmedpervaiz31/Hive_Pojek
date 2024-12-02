@@ -2,7 +2,7 @@
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
-from .models import Message, Hive  # Import Message and Hive models
+from .models import Message, Hive, Highscore  # Import Message and Hive models
 import base64
 from django.core.files.base import ContentFile
 from home.utils import load_spam_words
@@ -82,6 +82,47 @@ class HiveChatConsumer(WebsocketConsumer):
             kicked_user_id = data.get("user_id")
             if self.scope["user"].id == kicked_user_id:
                 self.close()
+            return
+
+        # Handle high score submission
+        if action == "submit_score":
+            score = data.get("score")
+            if score is not None:
+                # Check if there's an existing high score for the user in this hive
+                highscore, created = Highscore.objects.get_or_create(hive=hive, user=user)
+
+                # If the score is higher than the existing high score, update it
+                if score > highscore.score:
+                    highscore.score = score
+                    highscore.save()
+
+                    # Broadcast the updated high score to the Hive group
+                    async_to_sync(self.channel_layer.group_send)(
+                        self.hive_group_name,
+                        {
+                            "type": "update_highscore",
+                            "username": user.username,
+                            "score": highscore.score,
+                        }
+                    )
+                else:
+                    # Send a message if the score was not high enough to beat the current score
+                    self.send(text_data=json.dumps({
+                        "type": "info",
+                        "message": "Your score is lower than the current high score."
+                    }))
+
+            return  # Prevent further processing for the score submission
+
+        # Handle game over (when the game ends)
+        if action == "game_over":
+            # Send the game over message with the redirect URL
+            self.send(text_data=json.dumps({
+                "type": "game_over",
+                "message": "The game has ended. Redirecting you back to the hive.",
+                "redirect_to": f"/hive/{self.hive_id}/"  # Redirect to the hive page
+            }))
+            return
 
         file = None
         if file_data:
@@ -123,6 +164,58 @@ class HiveChatConsumer(WebsocketConsumer):
             "username": event["username"],
             "file_url": event["file_url"],
         }))
+
+    # New method to broadcast updated high scores
+    def update_highscore(self, event):
+        self.send(text_data=json.dumps({
+            "type": "highscore_update",
+            "username": event["username"],
+            "score": event["score"],
+        }))
+        
+
+
+class SnakeGameConsumer(WebsocketConsumer):
+    async def connect(self):
+        # Handle WebSocket connection
+        self.hive_id = self.scope['url_route']['kwargs']['hive_id']
+        self.room_group_name = f'hive_{self.hive_id}_game'
+
+        # Join the group
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave the group
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        # Handle messages (e.g., game over, score updates)
+        data = json.loads(text_data)
+        if data['type'] == 'game_over':
+            # Broadcast the game over event with the redirect URL
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'game_over',
+                    'redirect_to': f'/hive/{self.hive_id}/'
+                }
+            )
+    
+    # Method to handle game over message
+    async def game_over(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'game_over',
+            'message': 'Game Over!',
+            'redirect_to': event['redirect_to']
+        }))
+
 
 # class HiveChatConsumer(WebsocketConsumer):
 #     def connect(self):
@@ -255,6 +348,7 @@ class HiveChatConsumer(WebsocketConsumer):
 #             "message": event["message"],
 #             "username": event["username"],
 #         }))
+
 
 
 class HomepageConsumer(WebsocketConsumer):

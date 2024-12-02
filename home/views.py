@@ -436,3 +436,11 @@ def deleteMember(request):
     except HiveMember.DoesNotExist:
         return JsonResponse({'error': 'Member does not exist!'}, status=404, safe=False)
       
+@login_required(login_url='login') 
+def snakeGame(request, hive_id):
+    hive = get_object_or_404(Hive, pk=hive_id)  # Get the Hive object by its ID
+    return render(request, 'home/snake.html', {'hive': hive})
+
+@login_required(login_url='login')
+def photoEditor(request, pk):
+    return render(request, 'home/photo_editor.html', {'hive_id': pk})

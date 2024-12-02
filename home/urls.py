@@ -25,5 +25,8 @@ urlpatterns = [
   path('create_member/',views.createMember),
   path('get_member/',views.getMember),
   path('delete_member/',views.deleteMember),
+  path('hive/<int:hive_id>/snake.html', views.snakeGame, name='snake_game'),
+  path('hive/<str:pk>/photo-editor/', views.photoEditor, name='photo-editor'),
+
 
 ]

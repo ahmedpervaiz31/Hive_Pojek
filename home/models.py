@@ -61,4 +61,13 @@ class HiveMember(models.Model):
   def __str__(self):
       return self.name
   
-  
+class Highscore(models.Model):
+    hive = models.ForeignKey(Hive, on_delete=models.CASCADE, related_name="highscores")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    score = models.IntegerField(default=0)
+    
+    class Meta:
+        unique_together = ('hive', 'user')  # Ensure one score per user per hive
+
+    def __str__(self):
+        return f"{self.user.username}'s highscore in {self.hive.buzz}: {self.score}"

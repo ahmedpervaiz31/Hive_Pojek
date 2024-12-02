@@ -1,0 +1,15 @@
+{% extends 'main.html' %}
+{% block content %}
+{% load static %}
+    <div style="margin-bottom: 10px;">
+        <a href="{% url 'hive'  hive.id %}" class="btn btn-primary">Return to Chat</a>
+    </div>
+
+  
+    <!-- Game canvas where the game will be displayed -->
+    <canvas id="canvas" width="276" height="414"></canvas>
+    
+    <!-- Load the game script -->
+    <script src="{% static 'js/game.js' %}"></script>
+ 
+{% endblock %}

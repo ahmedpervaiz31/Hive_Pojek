@@ -40,30 +40,51 @@ spam_words = load_spam_words()
 
 # Create your views here.
 def loginView(request):
-  username, password = '', ''
-  
-  page = 'login'
-  if request.user.is_authenticated:
-    return redirect('homepage')
-   
-  if request.method == 'POST':
-    username = request.POST.get('username').lower()
-    password = request.POST.get('password')
+    """
+    Handles user login.
+
+    GET: Renders the login page.
+    POST: Authenticates the user and redirects to the homepage if successful.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        HttpResponse: The login page or redirect to the homepage on success.
+    """
+    username, password = '', ''
     
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-      login(request, user)
-      return redirect('homepage')
+    page = 'login'
+    if request.user.is_authenticated:
+        return redirect('homepage')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username').lower()
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('homepage')
 
-    else:
-      messages.error(request, "We could not find your username")
+        else:
+            messages.error(request, "We could not find your username")
 
-  context={'username': username, 'password': password, 'page': login}
-  return render(request, 'home/login.html', context)
-  
+    context={'username': username, 'password': password, 'page': login}
+    return render(request, 'home/login.html', context)
+    
 def logoutView(request):
-  logout(request)
-  return redirect('homepage')
+    """
+    Logs out the current user and redirects to the homepage.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        HttpResponseRedirect: Redirect to the homepage.
+    """
+    logout(request)
+    return redirect('homepage')
 
 
 def registerUser(request):
@@ -544,6 +565,7 @@ def submit_vote(request):
 
 @login_required
 def create_poll(request, hive_id):
+    
     hive = get_object_or_404(Hive, id=hive_id)
 
     # Check if the user is the Hive creator or a moderator
@@ -566,3 +588,8 @@ def create_poll(request, hive_id):
         form = PollForm()
 
     return render(request, "home/create_poll.html", {"form": form, "hive": hive})
+
+
+def game_view(request, hive_id):
+    hive = get_object_or_404(Hive, id=hive_id)
+    return render(request, 'home/game.html', {'hive': hive})

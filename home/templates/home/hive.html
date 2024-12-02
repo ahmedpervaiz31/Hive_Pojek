@@ -239,6 +239,7 @@
 </div>
 {% endif %}
 </div> 
+<a href="{% url 'game' hive.id %}" class="btn btn--main"> Play Game </a> 
 
 <a href="{% url 'poll_list' hive.id %}" class="btn btn--main">View Polls</a>
 
@@ -360,51 +361,57 @@
           }
       });
     });
-  document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
     const toggle = document.getElementById("theme-toggle");
-    const body = document.body;
     const hiveId = "{{ hive.id }}";
 
-    // Apply initial theme based on the hive's theme status
+    // Apply the initial theme from the server
     const currentTheme = "{{ hive.theme }}";
-    if (currentTheme === "dark") {
-        body.classList.add("dark-mode");
-    } else {
-        body.classList.remove("dark-mode");
-    }
+    const isDarkMode = currentTheme === "dark";  // Determine initial theme
+    applyTheme(isDarkMode);  // Apply the theme (dark by default)
+    toggle.checked = isDarkMode;  // Set the checkbox state based on the theme
 
-    // Add event listener to handle theme toggle
+    // Toggle the theme and update the backend
     toggle.addEventListener("change", async function () {
-        const isDarkMode = toggle.checked;
+      const isDarkMode = toggle.checked;  // Get the new state
+      applyTheme(isDarkMode);  // Apply the new theme
 
-        // Toggle CSS class on the body element
-        if (isDarkMode) {
-            body.classList.add("dark-mode");
-        } else {
-            body.classList.remove("dark-mode");
+      // Send the updated theme to the backend
+      const theme = isDarkMode ? "dark" : "light";
+      try {
+        const response = await fetch(`/update-hive-theme/${hiveId}/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+          },
+          body: JSON.stringify({ theme }),
+        });
+
+        if (!response.ok) {
+          console.error("Failed to update theme on the server.");
         }
-
-        // Update theme in the backend
-        const theme = isDarkMode ? "dark" : "light";
-
-        try {
-            const response = await fetch(`/update-hive-theme/${hiveId}/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": "{{ csrf_token }}",
-                },
-                body: JSON.stringify({ theme: theme }),
-            });
-
-            if (!response.ok) {
-                console.error("Failed to update theme on the server");
-            }
-        } catch (error) {
-            console.error("Error updating theme:", error);
-        }
+      } catch (error) {
+        console.error("Error updating theme:", error);
+      }
     });
-});
+  });
+
+  // Function to apply the theme (dark or light mode)
+  function applyTheme(isDarkMode) {
+    // Apply dark or light mode to the body
+    document.body.classList.remove("dark-mode", "light-mode");
+    document.body.classList.add(isDarkMode ? "dark-mode" : "light-mode");
+
+    // Update additional elements (e.g., chat, room containers)
+    const elements = document.querySelectorAll(
+      "#room-container, #chat-box, header, input, button, .thread, .participants, .room__top, .room__box"
+    );
+    elements.forEach((el) => {
+      el.classList.remove("dark-mode", "light-mode");
+      el.classList.add(isDarkMode ? "dark-mode" : "light-mode");
+    });
+  }
 </script>
 
 <script>
@@ -521,13 +528,138 @@
 
 <style>
 
-  /* CSS */
-.theme-toggle {
-    margin: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+<style>
+  body.light-mode {
+  background-color: #a8c4d1;
+  color: #000000;
 }
+body.light-mode {
+  background-color: #a8c4d1;
+  color: #000000;
+}
+#room-container.light-mode {
+  background-color: #adb7c5;
+  color: #333;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+#chat-box.light-mode {
+  background-color: #bfe7f3;
+  /* f1f1f1 */
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+header.light-mode {
+  background-color: #3a4c5e;
+  color: #000;
+}
+
+input.light-mode,
+button.light-mode {
+  background-color: #182635;
+  color: #000;
+  border-color: #ddd;
+}
+
+.thread.light-mode {
+  background-color: #98def3;
+  color: #333;
+}
+
+.participants.light-mode {
+  background-color: #50b2d5;
+  color: #0b0b0b;
+}
+/*3c658f f8f9fa  fefefe*/
+.room__top.light-mode {
+  background-color: #89b8e7;
+  color: #0b0b0b;
+   
+}
+
+.room__box.light-mode {
+  background-color: #cad7dc;
+  color: #333;
+}
+
+.slider.round.light-mode {
+  background-color: #b6cddc;
+  color: #0b0b0b;
+}
+/* General dark mode */
+
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+/* Room container */
+#room-container.dark-mode {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Chat box */
+#chat-box.dark-mode {
+    background-color: #2a3244;
+    border: 1px solid #555;
+    color: #e0e0e0;
+}
+
+/* Header */
+header.dark-mode {
+    background-color: #222;
+    color: #ffffff;
+}
+
+/* Input fields and buttons */
+input.dark-mode, button.dark-mode {
+    background-color: #333;
+    color: #ffffff;
+    border-color: #444;
+}
+
+/* Threads (messages) */
+.thread.dark-mode {
+    background-color: #252525;
+    border: 1px solid #444;
+    color: #e0e0e0;
+}
+
+/* Participants list */
+.participants.dark-mode {
+    background-color: #1e1e1e;
+    color: #e4ba13;
+}
+
+/* Room top section */
+.room__top.dark-mode {
+    background-color: #222;
+    color: #ffffff;
+}
+
+/* Room box */
+.room__box.dark-mode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+/* Toggle switch */
+.slider.round.dark-mode {
+    background-color: #555;
+}
+
+
+.slider.round {
+    background-color: #ccc;
+}
+
+.slider.round.dark-mode {
+    background-color: #555;
+}
+
 .switch {
     position: relative;
     display: inline-block;
@@ -602,6 +734,9 @@ input:checked + .slider:before {
   border-radius: 8px;
 }
 
+
 </style>
+
+ 
 
 {% endblock %}
